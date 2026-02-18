@@ -261,6 +261,8 @@ type ClinicScene3DProps = {
   feedbackEmoji?: string | null;
   doctorPromptText: string;
   doctorMood: DoctorMood;
+  doctorShowBubble?: boolean;
+  doctorShowPanelTrail?: boolean;
 };
 
 export function ClinicScene3D({
@@ -270,6 +272,8 @@ export function ClinicScene3D({
   feedbackEmoji,
   doctorPromptText,
   doctorMood,
+  doctorShowBubble = true,
+  doctorShowPanelTrail = false,
 }: ClinicScene3DProps) {
   return (
     <div className="clinic-scene-3d">
@@ -305,7 +309,12 @@ export function ClinicScene3D({
             celebrateIdeal={celebrateIdeal}
             feedbackEmoji={feedbackEmoji}
           />
-          <GhostDoctor mood={doctorMood} promptText={doctorPromptText} />
+          <GhostDoctor
+            mood={doctorMood}
+            promptText={doctorPromptText}
+            showBubble={doctorShowBubble}
+            showPanelTrail={doctorShowPanelTrail}
+          />
         </Suspense>
         <OrbitControls
           enableZoom={true}

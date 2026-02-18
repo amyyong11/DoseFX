@@ -10,9 +10,16 @@ export type DoctorMood = "neutral" | "happy" | "concerned" | "strict";
 type GhostDoctorProps = {
   mood: DoctorMood;
   promptText: string;
+  showBubble?: boolean;
+  showPanelTrail?: boolean;
 };
 
-export function GhostDoctor({ mood, promptText }: GhostDoctorProps) {
+export function GhostDoctor({
+  mood,
+  promptText,
+  showBubble = true,
+  showPanelTrail = false,
+}: GhostDoctorProps) {
   const root = useRef<Group>(null);
   const leftBrow = useRef<Group>(null);
   const rightBrow = useRef<Group>(null);
@@ -39,7 +46,7 @@ export function GhostDoctor({ mood, promptText }: GhostDoctorProps) {
   });
 
   return (
-    <group ref={root} position={[1.2, 0, 0.15]}>
+    <group ref={root} position={[0.6, 0, 0.15]}>
       <group position={[0, 0.35, 0]}>
         <mesh castShadow>
           <sphereGeometry args={[0.38, 24, 24]} />
@@ -97,64 +104,112 @@ export function GhostDoctor({ mood, promptText }: GhostDoctorProps) {
         </group>
       </group>
 
-      <Html position={[0.64, 1.28, 0]} center>
-        <div
-          style={{
-            position: "relative",
-            background: "rgba(255,255,255,0.96)",
-            color: "#1f2c3a",
-            border: "1px solid rgba(31,44,58,0.2)",
-            borderRadius: "18px",
-            padding: "10px 12px",
-            fontSize: "13px",
-            lineHeight: 1.25,
-            fontWeight: 600,
-            maxWidth: "250px",
-            width: "max-content",
-            boxShadow: "0 8px 20px rgba(0,0,0,0.22)",
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          {promptText}
-          <span
+      {showBubble && (
+        <Html position={[0.64, 1.28, 0]} center>
+          <div
             style={{
-              position: "absolute",
-              left: "18px",
-              bottom: "-8px",
-              width: "12px",
-              height: "12px",
+              position: "relative",
               background: "rgba(255,255,255,0.96)",
-              borderRight: "1px solid rgba(31,44,58,0.2)",
-              borderBottom: "1px solid rgba(31,44,58,0.2)",
-              borderRadius: "50%",
+              color: "#1f2c3a",
+              border: "1px solid rgba(31,44,58,0.2)",
+              borderRadius: "18px",
+              padding: "10px 12px",
+              fontSize: "13px",
+              lineHeight: 1.25,
+              fontWeight: 600,
+              maxWidth: "250px",
+              width: "max-content",
+              boxShadow: "0 8px 20px rgba(0,0,0,0.22)",
+              whiteSpace: "pre-wrap",
             }}
-          />
-          <span
+          >
+            {promptText}
+            <span
+              style={{
+                position: "absolute",
+                left: "18px",
+                bottom: "-8px",
+                width: "12px",
+                height: "12px",
+                background: "rgba(255,255,255,0.96)",
+                borderRight: "1px solid rgba(31,44,58,0.2)",
+                borderBottom: "1px solid rgba(31,44,58,0.2)",
+                borderRadius: "50%",
+              }}
+            />
+            <span
+              style={{
+                position: "absolute",
+                left: "7px",
+                bottom: "-16px",
+                width: "8px",
+                height: "8px",
+                background: "rgba(255,255,255,0.95)",
+                border: "1px solid rgba(31,44,58,0.18)",
+                borderRadius: "50%",
+              }}
+            />
+            <span
+              style={{
+                position: "absolute",
+                left: "0px",
+                bottom: "-22px",
+                width: "5px",
+                height: "5px",
+                background: "rgba(255,255,255,0.94)",
+                border: "1px solid rgba(31,44,58,0.16)",
+                borderRadius: "50%",
+              }}
+            />
+          </div>
+        </Html>
+      )}
+
+      {showPanelTrail && (
+        <Html transform position={[0.9, 1.08, 0.2]}>
+          <div
             style={{
-              position: "absolute",
-              left: "7px",
-              bottom: "-16px",
-              width: "8px",
-              height: "8px",
-              background: "rgba(255,255,255,0.95)",
-              border: "1px solid rgba(31,44,58,0.18)",
-              borderRadius: "50%",
+              display: "grid",
+              gap: "8px",
+              justifyItems: "start",
+              pointerEvents: "none",
             }}
-          />
-          <span
-            style={{
-              position: "absolute",
-              left: "0px",
-              bottom: "-22px",
-              width: "5px",
-              height: "5px",
-              background: "rgba(255,255,255,0.94)",
-              border: "1px solid rgba(31,44,58,0.16)",
-              borderRadius: "50%",
-            }}
-          />
-        </div>
-      </Html>
+          >
+            <span
+              style={{
+                width: "18px",
+                height: "18px",
+                borderRadius: "999px",
+                background: "rgba(28, 32, 42, 0.92)",
+                border: "1px solid rgba(80, 95, 120, 0.4)",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.22)",
+              }}
+            />
+            <span
+              style={{
+                width: "12px",
+                height: "12px",
+                borderRadius: "999px",
+                marginLeft: "10px",
+                background: "rgba(28, 32, 42, 0.92)",
+                border: "1px solid rgba(80, 95, 120, 0.4)",
+                boxShadow: "0 3px 8px rgba(0,0,0,0.2)",
+              }}
+            />
+            <span
+              style={{
+                width: "8px",
+                height: "8px",
+                borderRadius: "999px",
+                marginLeft: "18px",
+                background: "rgba(28, 32, 42, 0.92)",
+                border: "1px solid rgba(80, 95, 120, 0.4)",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.18)",
+              }}
+            />
+          </div>
+        </Html>
+      )}
     </group>
   );
 }

@@ -325,11 +325,16 @@ body {
 
 .hud-left {
   left: 0;
-  top: 50%;
+  top: 54%;
   transform: translateY(-50%);
   padding: 0 16px;
   max-width: 320px;
   max-height: calc(100vh - 120px);
+  width: min(320px, 32vw);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
 }
 
 .hud-right {
@@ -346,8 +351,23 @@ body {
   overflow: hidden;
 }
 
-.hud-right.ghost-anchored-wrap {
-  overflow: visible;
+.level-status-panel {
+  margin-top: 0;
+  padding: 10px 12px;
+  flex: 0 0 auto;
+}
+
+.level-status-panel .feedback-label {
+  margin-bottom: 6px;
+}
+
+.level-status-panel .headline {
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.level-status-panel .score {
+  margin-top: 4px;
 }
 
 .hud-bottom {
@@ -432,41 +452,15 @@ body {
 }
 
 .info-panel {
-  max-height: calc(100vh - 180px);
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
 }
 
 .drug-panel {
   flex: 1 1 56%;
   min-height: 42vh;
   max-height: none;
-}
-
-.ghost-anchored-panel {
-  position: relative;
-}
-
-.ghost-anchored-panel::before,
-.ghost-anchored-panel::after {
-  content: "";
-  position: absolute;
-  border-radius: 999px;
-  background: var(--surface);
-  border: 1px solid var(--surface-border);
-  pointer-events: none;
-}
-
-.ghost-anchored-panel::before {
-  width: 18px;
-  height: 18px;
-  left: -14px;
-  top: 44%;
-}
-
-.ghost-anchored-panel::after {
-  width: 10px;
-  height: 10px;
-  left: -24px;
-  top: 48%;
 }
 
 .feedback-panel {
@@ -817,10 +811,12 @@ body {
   .hud-left {
     left: 50%;
     top: auto;
-    bottom: 180px;
+    bottom: 165px;
     transform: translateX(-50%);
     max-width: 90%;
     max-height: 28vh;
+    width: 90%;
+    gap: 8px;
   }
 
   .hud-right {
@@ -843,6 +839,7 @@ body {
     width: calc(100vw - 16px);
     max-height: min(32vh, 240px);
   }
+
 
   .drug-panel,
   .feedback-panel,

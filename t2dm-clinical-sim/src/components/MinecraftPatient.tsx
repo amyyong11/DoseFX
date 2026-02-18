@@ -370,7 +370,7 @@ export function MinecraftPatient({ riskScore, reaction, celebrateIdeal, feedback
   });
 
   return (
-    <group ref={root} position={[0, -0.62, 0.25]}>
+    <group ref={root} position={[-0.6, -0.8, 0.25]}>
       <group ref={body}>
         <group ref={legRight} position={[-P(2), P(6), 0]}>
           <mesh castShadow material={legRightMaterials}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { ClinicScene3D } from "@/components/ClinicScene3D";
 import type { DoctorMood } from "@/components/GhostDoctor";
@@ -9,6 +9,7 @@ import type { PatientReaction } from "@/lib/types";
 
 type Mode = "browse" | "learning" | "testing" | "diagnostic";
 type QuestionType = "mcq" | "short_answer" | "reasoning";
+type DifficultyLevel = "basic" | "intermediate" | "advanced";
 type ChatMessage = { role: "user" | "assistant"; text: string };
 type DoctorErrorPayload = { error?: string; detail?: string };
 type DiagnosticReview = {
@@ -45,6 +46,8 @@ export function CasePlayer() {
   const [diagnosticDrugId, setDiagnosticDrugId] = useState<string | null>(null);
   const [diagnosticThoughts, setDiagnosticThoughts] = useState("");
   const [diagnosticReview, setDiagnosticReview] = useState<DiagnosticReview | null>(null);
+  const [scoredPoints, setScoredPoints] = useState(0);
+  const [diagnosticAttemptScored, setDiagnosticAttemptScored] = useState(false);
   const [doctorMessages, setDoctorMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -76,15 +79,32 @@ export function CasePlayer() {
   const pendingDrugName = pendingChoice ? drugs.find((drug) => drug.id === pendingChoice)?.name ?? pendingChoice : null;
   const questionHint = buildQuestionHint(patient, questionType);
   const diagnosticDrug = diagnosticDrugId ? drugs.find((drug) => drug.id === diagnosticDrugId) ?? null : null;
+  const scoredTestingAttempts = useRef<Set<string>>(new Set());
+  const difficultyLevel: DifficultyLevel = scoredPoints >= 500 ? "advanced" : scoredPoints >= 220 ? "intermediate" : "basic";
+  const allowedTestingQuestionTypes: QuestionType[] = useMemo(
+    () =>
+      difficultyLevel === "advanced"
+        ? ["mcq", "short_answer", "reasoning"]
+        : difficultyLevel === "intermediate"
+          ? ["mcq", "short_answer"]
+          : ["mcq"],
+    [difficultyLevel]
+  );
   const doctorMood: DoctorMood = mode === "diagnostic"
     ? getDoctorMoodFromScore(diagnosticReview?.score)
     : getDoctorMoodFromScore(feedback?.score);
   const doctorPromptText =
     mode === "diagnostic" && diagnosticDrug
-      ? `Should we use ${diagnosticDrug.name}? Explain why or why not.`
+      ? difficultyLevel === "advanced"
+        ? `High difficulty: Should we use ${diagnosticDrug.name}? Justify with renal context, risk tradeoffs, and preferred alternatives.`
+        : difficultyLevel === "intermediate"
+          ? `Moderate difficulty: Should we use ${diagnosticDrug.name}? Explain why/why not and list monitoring priorities.`
+          : `Basic difficulty: Should we use ${diagnosticDrug.name}? Explain why or why not.`
       : selectedDrugName
         ? `What do you think about ${selectedDrugName} for this patient?`
-        : "Pick a medication, then explain your reasoning.";
+        : mode === "browse"
+          ? "Review the options and tell me your reasoning."
+          : "Share your reasoning for this case.";
 
   useEffect(() => {
     if (diagnosticDrugId || drugs.length === 0) return;
@@ -113,6 +133,22 @@ export function CasePlayer() {
     setShowDoctor(false);
   }, [learningConsolidationActive, breatherSecondsLeft, mode, cases, caseId]);
 
+  useEffect(() => {
+    if (mode !== "testing") return;
+    if (allowedTestingQuestionTypes.includes(questionType)) return;
+    setQuestionType("mcq");
+  }, [mode, allowedTestingQuestionTypes, questionType]);
+
+  useEffect(() => {
+    if (mode !== "testing" || !choice || !feedback) return;
+    const attemptKey = `${patient.id}:${testingIndex}:${choice}`;
+    if (scoredTestingAttempts.current.has(attemptKey)) return;
+    scoredTestingAttempts.current.add(attemptKey);
+    if (!patient.appropriate.includes(choice)) return;
+    const earned = Math.max(40, Math.round((feedback.score ?? 80) * 0.6));
+    setScoredPoints((prev) => prev + earned);
+  }, [mode, choice, feedback, patient.id, testingIndex, patient.appropriate]);
+
   function switchMode(nextMode: Mode) {
     setMode(nextMode);
     resetAttemptState();
@@ -123,6 +159,7 @@ export function CasePlayer() {
       setDiagnosticDrugId((prev) => pickDiagnosticDrugId(drugs, prev));
       setDiagnosticThoughts("");
       setDiagnosticReview(null);
+      setDiagnosticAttemptScored(false);
     }
   }
 
@@ -164,7 +201,13 @@ export function CasePlayer() {
     if (!diagnosticDrug) return;
     const content = diagnosticThoughts.trim();
     if (content.length < 20) return;
-    setDiagnosticReview(reviewDiagnosticThoughts(content, patient, diagnosticDrug));
+    const review = reviewDiagnosticThoughts(content, patient, diagnosticDrug);
+    setDiagnosticReview(review);
+    if (!diagnosticAttemptScored && review.score >= 70) {
+      const earned = Math.max(30, Math.round(review.score * 0.5));
+      setScoredPoints((prev) => prev + earned);
+      setDiagnosticAttemptScored(true);
+    }
   }
 
   function submitShortAnswer() {
@@ -347,6 +390,7 @@ export function CasePlayer() {
           feedbackEmoji={feedback ? feedbackEmoji : null}
           doctorPromptText={doctorPromptText}
           doctorMood={doctorMood}
+          doctorShowBubble={mode !== "browse"}
         />
         <div className="hud hud-top">
           <div className="hud-header">
@@ -383,6 +427,11 @@ export function CasePlayer() {
               Diagnostic View
             </button>
           </div>
+          {(mode === "testing" || mode === "diagnostic") && (
+            <p className="quiz-progress">
+              Points: {scoredPoints} | Difficulty: {difficultyLevel}
+            </p>
+          )}
           <div className="hud-case-picker">
             {mode !== "testing" ? (
               <>
@@ -479,10 +528,15 @@ export function CasePlayer() {
               </span>
             </div>
           </div>
+          <div className="hud-panel level-status-panel">
+            <p className="feedback-label">Progress</p>
+            <p className="headline">Level: {difficultyLevel}</p>
+            <p className="score">Points: {scoredPoints}</p>
+          </div>
         </div>
 
         {mode !== "diagnostic" && (
-        <div className={`hud hud-right ${mode === "browse" ? "ghost-anchored-wrap" : ""}`}>
+        <div className="hud hud-right">
           {showDoctor && (
             <div id="ai-doctor-panel" className="hud-panel doctor-inline-panel">
               <div className="doctor-inline-header">
@@ -524,7 +578,7 @@ export function CasePlayer() {
             </div>
           )}
 
-          <div className={`hud-panel drug-panel ${mode === "browse" ? "ghost-anchored-panel" : ""}`}>
+          <div className="hud-panel drug-panel">
             {mode === "diagnostic" ? (
               <>
                 {diagnosticReview && (
@@ -585,6 +639,7 @@ export function CasePlayer() {
                   <button
                     type="button"
                     className={questionType === "short_answer" ? "active" : ""}
+                    disabled={mode === "testing" && !allowedTestingQuestionTypes.includes("short_answer")}
                     onClick={() => {
                       setQuestionType("short_answer");
                       nextAttempt();
@@ -595,6 +650,7 @@ export function CasePlayer() {
                   <button
                     type="button"
                     className={questionType === "reasoning" ? "active" : ""}
+                    disabled={mode === "testing" && !allowedTestingQuestionTypes.includes("reasoning")}
                     onClick={() => {
                       setQuestionType("reasoning");
                       nextAttempt();
@@ -778,6 +834,7 @@ export function CasePlayer() {
                     setDiagnosticDrugId((prev) => pickDiagnosticDrugId(drugs, prev));
                     setDiagnosticThoughts("");
                     setDiagnosticReview(null);
+                    setDiagnosticAttemptScored(false);
                   }}
                 >
                   New Medication Prompt
