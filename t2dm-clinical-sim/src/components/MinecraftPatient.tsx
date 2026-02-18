@@ -175,8 +175,9 @@ export function MinecraftPatient({ riskScore, reaction, celebrateIdeal, feedback
   }, [image, validSkin]);
 
   const bodyMaterials = useMemo(() => {
-    if (!image || !validSkin) return fallbackMaterials("#1aa8b7");
-    return makeFaceMaterials(image, BODY_FACES);
+    const mats = !image || !validSkin ? fallbackMaterials("#89CFF0") : makeFaceMaterials(image, BODY_FACES);
+    mats.forEach((mat) => mat.color.set("#89CFF0"));
+    return mats;
   }, [image, validSkin]);
 
   const armRightMaterials = useMemo(() => {
