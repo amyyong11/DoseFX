@@ -1,0 +1,102 @@
+[
+  {
+    "id": "case_ckd",
+    "title": "Patient with CKD",
+    "summary": "58-year-old with A1c 8.6%, eGFR 42 mL/min/1.73 m², obesity, and history of nocturnal hypoglycemia on prior secretagogue.",
+    "features": {
+      "a1c": 8.6,
+      "bmi": 33,
+      "egfr": 42,
+      "ascvd": false,
+      "hf": false,
+      "costSensitive": false,
+      "hypoglycemiaRisk": true,
+      "weightLossGoal": true,
+      "giIntolerance": false
+    },
+    "derivedTags": ["ckd", "high_hypoglycemia_risk", "weight_loss_goal"],
+    "teachingPoint": "Prioritize agents with demonstrated cardiorenal benefit and avoid hypoglycemia-prone regimens. SGLT2 inhibitors are recommended for individuals with CKD regardless of A1C (Diabetes Canada 2024; CCS 2022).",
+    "appropriate": ["sglt2", "glp1"],
+    "bestAlternative": "sglt2"
+  },
+  {
+    "id": "case_ascvd",
+    "title": "Patient with ASCVD",
+    "summary": "64-year-old with prior MI, A1c 8.1%, BMI 36. Motivated for weight loss and stroke prevention.",
+    "features": {
+      "a1c": 8.1,
+      "bmi": 36,
+      "egfr": 72,
+      "ascvd": true,
+      "hf": false,
+      "costSensitive": false,
+      "hypoglycemiaRisk": false,
+      "weightLossGoal": true,
+      "giIntolerance": false
+    },
+    "derivedTags": ["ascvd", "weight_loss_goal"],
+    "teachingPoint": "Use GLP-1 RA or SGLT2i for cardiorenal risk reduction. GLP-1 RAs have strong evidence for MACE and nonfatal stroke reduction; preferred when weight loss is a priority (Diabetes Canada 2024; CCS 2022).",
+    "appropriate": ["glp1", "sglt2"],
+    "bestAlternative": "glp1"
+  },
+  {
+    "id": "case_hf",
+    "title": "Patient with Heart Failure",
+    "summary": "62-year-old with HFrEF (LVEF 35%), A1c 7.8%, eGFR 58. On guideline-directed HF therapy; need to add glucose-lowering with cardiorenal benefit.",
+    "features": {
+      "a1c": 7.8,
+      "bmi": 30,
+      "egfr": 58,
+      "ascvd": true,
+      "hf": true,
+      "costSensitive": false,
+      "hypoglycemiaRisk": false,
+      "weightLossGoal": false,
+      "giIntolerance": false
+    },
+    "derivedTags": ["hf", "ascvd"],
+    "teachingPoint": "SGLT2 inhibitors are recommended for adults with HF (LVEF ≤40% or >40%) to reduce hospitalization for HF and, in HFrEF, mortality and kidney outcomes. Initiation is independent of A1C (CCS 2022; Diabetes Canada 2024).",
+    "appropriate": ["sglt2", "glp1"],
+    "bestAlternative": "sglt2"
+  },
+  {
+    "id": "case_cost",
+    "title": "Cost-Sensitive, New Diagnosis",
+    "summary": "47-year-old, A1c 8.4%, no ASCVD/CKD/HF, limited drug coverage. Tolerates metformin.",
+    "features": {
+      "a1c": 8.4,
+      "bmi": 29,
+      "egfr": 85,
+      "ascvd": false,
+      "hf": false,
+      "costSensitive": true,
+      "hypoglycemiaRisk": false,
+      "weightLossGoal": false,
+      "giIntolerance": false
+    },
+    "derivedTags": ["cost_sensitive"],
+    "teachingPoint": "Metformin remains first-line when tolerated and affordable. Sulfonylureas are the least expensive alternative where financial barriers exist; consider hypoglycemia and weight when choosing (Diabetes Canada 2024).",
+    "appropriate": ["metformin", "sulfonylurea"],
+    "bestAlternative": "metformin"
+  },
+  {
+    "id": "case_gi_intolerance",
+    "title": "Patient with GI Intolerance to Metformin",
+    "summary": "55-year-old, A1c 8.2%, eGFR 78, ASCVD. Cannot tolerate metformin due to persistent GI symptoms despite slow titration.",
+    "features": {
+      "a1c": 8.2,
+      "bmi": 32,
+      "egfr": 78,
+      "ascvd": true,
+      "hf": false,
+      "costSensitive": false,
+      "hypoglycemiaRisk": false,
+      "weightLossGoal": true,
+      "giIntolerance": true
+    },
+    "derivedTags": ["ascvd", "weight_loss_goal", "gi_intolerance"],
+    "teachingPoint": "In ASCVD with need for weight loss, prefer SGLT2i when GLP-1 RA is limited by GI intolerance. SGLT2i offer cardiorenal benefit without GI burden (Diabetes Canada 2024; CCS 2022).",
+    "appropriate": ["sglt2", "dpp4"],
+    "bestAlternative": "sglt2"
+  }
+]

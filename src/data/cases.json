@@ -1,0 +1,22 @@
+[
+  {
+    "id": "case1",
+    "title": "T2DM with CKD",
+    "summary": "52yo with T2DM and CKD, needs A1c control.",
+    "features": {
+      "a1c": 8.5,
+      "bmi": 32,
+      "egfr": 38,
+      "ascvd": false,
+      "hf": false,
+      "costSensitive": false,
+      "hypoglycemiaRisk": true,
+      "weightLossGoal": true,
+      "giIntolerance": false
+    },
+    "derivedTags": ["ckd"],
+    "teachingPoint": "Prefer agents that protect the kidney and avoid hypoglycemia.",
+    "appropriate": ["sglt2"],
+    "bestAlternative": "sglt2"
+  }
+]

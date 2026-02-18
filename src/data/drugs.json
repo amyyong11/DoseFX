@@ -1,0 +1,24 @@
+[
+  {
+    "id": "sglt2",
+    "name": "SGLT2 inhibitor",
+    "benefits": ["Lowers A1c", "Renal protection", "Weight loss"],
+    "risks": ["Genital infections", "Volume depletion"],
+    "avoidIf": [],
+    "preferIf": ["ckd"],
+    "evidence": [
+      { "id": "e1", "source": "Dataset", "quote": "SGLT2 inhibitors provide renal benefit in CKD." }
+    ]
+  },
+  {
+    "id": "sulfonylurea",
+    "name": "Sulfonylurea",
+    "benefits": ["Lowers A1c"],
+    "risks": ["Hypoglycemia", "Weight gain"],
+    "avoidIf": ["hypoglycemia"],
+    "preferIf": [],
+    "evidence": [
+      { "id": "e2", "source": "Dataset", "quote": "Sulfonylureas increase hypoglycemia risk." }
+    ]
+  }
+]

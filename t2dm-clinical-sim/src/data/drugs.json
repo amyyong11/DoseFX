@@ -1,0 +1,102 @@
+[
+  {
+    "id": "metformin",
+    "name": "Metformin",
+    "benefits": ["Durable A1C lowering", "Negligible hypoglycemia or weight gain", "Long-term safety and affordability"],
+    "risks": ["GI side effects (minimize with low initial dose)", "Vitamin B12 deficiency with long-term use"],
+    "avoidIf": ["advanced_ckd", "gi_intolerance"],
+    "preferIf": ["cost_sensitive"],
+    "evidence": [
+      {
+        "id": "m1",
+        "source": "Diabetes Canada 2024, Can J Diabetes",
+        "quote": "Metformin is recommended as the initial antihyperglycemic medication because of its durable efficacy in lowering A1C, negligible risk for hypoglycemia or weight gain, relatively mild side-effect profile, long-term track record, and affordability."
+      }
+    ]
+  },
+  {
+    "id": "sglt2",
+    "name": "SGLT2 Inhibitor",
+    "benefits": ["Cardiorenal protection in CKD, HF, and high CV risk", "Weight loss", "Negligible hypoglycemia"],
+    "risks": ["Genital mycotic infections", "Volume depletion", "Hold in acute illness; eGFR limits per product"],
+    "avoidIf": [],
+    "preferIf": ["ckd", "hf", "ascvd"],
+    "evidence": [
+      {
+        "id": "s1",
+        "source": "Diabetes Canada 2024, Can J Diabetes",
+        "quote": "An SGLT2 inhibitor with demonstrated evidence of benefit is recommended for individuals with CKD (Grade A for canagliflozin, dapagliflozin, or empagliflozin)."
+      },
+      {
+        "id": "s2",
+        "source": "CCS 2022, Can J Cardiol",
+        "quote": "In adults with HF and LVEF ≤40%, we recommend use of SGLT2i to reduce all-cause and CV mortality, hospitalization for HF, and composite kidney outcome."
+      }
+    ]
+  },
+  {
+    "id": "glp1",
+    "name": "GLP-1 Receptor Agonist",
+    "benefits": ["MACE reduction in high CV risk", "Weight loss", "Negligible hypoglycemia", "Nonfatal stroke reduction"],
+    "risks": ["Nausea, vomiting, diarrhea (often transient)", "Avoid in pregnancy; safety unknown"],
+    "avoidIf": ["gi_intolerance"],
+    "preferIf": ["ascvd", "weight_loss_goal"],
+    "evidence": [
+      {
+        "id": "g1",
+        "source": "Diabetes Canada 2024, Can J Diabetes",
+        "quote": "A GLP1-RA with demonstrated evidence of benefit is recommended for individuals at high CV risk (dulaglutide, liraglutide, or subcutaneous semaglutide)."
+      },
+      {
+        "id": "g2",
+        "source": "CCS 2022, Can J Cardiol",
+        "quote": "GLP-1RA to reduce the risk of nonfatal stroke (Strong Recommendation; Moderate-Quality Evidence)."
+      }
+    ]
+  },
+  {
+    "id": "dpp4",
+    "name": "DPP-4 Inhibitor",
+    "benefits": ["Oral dosing", "Low hypoglycemia risk", "Weight neutral"],
+    "risks": ["Modest A1C lowering vs GLP-1/SGLT2", "Some agents: heart failure signal in trials"],
+    "avoidIf": ["hf"],
+    "preferIf": [],
+    "evidence": [
+      {
+        "id": "d1",
+        "source": "Diabetes Canada 2024, Can J Diabetes",
+        "quote": "Combinations of metformin with ... DPP4 inhibitors have broadly comparable A1C-lowering benefits. DPP4 inhibitors have a neutral effect on weight."
+      }
+    ]
+  },
+  {
+    "id": "sulfonylurea",
+    "name": "Sulfonylurea",
+    "benefits": ["Effective A1C lowering", "Low cost"],
+    "risks": ["Hypoglycemia", "Weight gain (1.5–5 kg)"],
+    "avoidIf": ["high_hypoglycemia_risk"],
+    "preferIf": ["cost_sensitive"],
+    "evidence": [
+      {
+        "id": "su1",
+        "source": "Diabetes Canada 2024, Can J Diabetes",
+        "quote": "The risk of hypoglycemia is lower with incretins, SGLT2 inhibitors, and thiazolidinediones compared to sulfonylureas and insulin. Where financial barriers exist, sulfonylureas are the least expensive alternative."
+      }
+    ]
+  },
+  {
+    "id": "basal_insulin",
+    "name": "Basal Insulin",
+    "benefits": ["No dose ceiling; strong glucose lowering", "First-line in metabolic decompensation or severe symptomatic hyperglycemia"],
+    "risks": ["Hypoglycemia", "Weight gain", "Injection burden"],
+    "avoidIf": ["high_hypoglycemia_risk"],
+    "preferIf": ["very_high_a1c"],
+    "evidence": [
+      {
+        "id": "i1",
+        "source": "Diabetes Canada 2024, Can J Diabetes",
+        "quote": "Insulin, with or without metformin, is recommended as initial pharmacologic therapy for individuals with metabolic decompensation and/or severe symptomatic hyperglycemia."
+      }
+    ]
+  }
+]
