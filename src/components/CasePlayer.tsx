@@ -5,6 +5,7 @@ import cases from "@/data/cases.json";
 import { getAllDrugs, gradeChoice } from "@/lib/engine";
 
 type Mode = "browse" | "learning" | "testing";
+type ChatMessage = { role: "user" | "assistant"; text: string };
 
 export function CasePlayer() {
   const patient = cases[0];
@@ -12,6 +13,15 @@ export function CasePlayer() {
   const [mode, setMode] = useState<Mode>("browse");
   const [choice, setChoice] = useState<string | null>(null);
   const [breatherSecondsLeft, setBreatherSecondsLeft] = useState(0);
+  const [showEmojiLegend, setShowEmojiLegend] = useState(false);
+  const [showDoctor, setShowDoctor] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      role: "assistant",
+      text: "I am your AI Doctor coach. Ask what to pick, why, or side effects to monitor."
+    }
+  ]);
 
   const feedback = choice ? gradeChoice(patient, choice) : null;
   const selectedDrug = drugs.find(d => d.id === choice);
@@ -46,10 +56,75 @@ export function CasePlayer() {
     setBreatherSecondsLeft(0);
   }
 
+  function askDoctor() {
+    const q = question.trim();
+    if (!q) return;
+    const reply = generateDoctorResponse(q, patient, drugs, choice, feedback);
+    setMessages(prev => [...prev, { role: "user", text: q }, { role: "assistant", text: reply }]);
+    setQuestion("");
+  }
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-2">{patient.title}</h1>
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <h1 className="text-2xl font-semibold">{patient.title}</h1>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowEmojiLegend(v => !v)}
+            className="rounded-lg border px-3 py-2 text-sm bg-white"
+          >
+            Emoji Legend
+          </button>
+          <button
+            onClick={() => setShowDoctor(v => !v)}
+            className="rounded-lg border px-3 py-2 text-sm bg-white"
+          >
+            AI Doctor
+          </button>
+        </div>
+      </div>
       <p className="text-gray-600 mb-4">{patient.summary}</p>
+
+      {showEmojiLegend && (
+        <div className="mb-4 rounded-xl border p-3 bg-white text-sm">
+          <div>😁 95-100: excellent match</div>
+          <div>👍 80-94: strong choice</div>
+          <div>😐 60-79: acceptable</div>
+          <div>😓 40-59: weak fit</div>
+          <div>☹️ 20-39: poor choice</div>
+          <div>💀 0-19: dangerous choice</div>
+        </div>
+      )}
+
+      {showDoctor && (
+        <div className="mb-4 rounded-xl border p-3 bg-white">
+          <h3 className="font-semibold mb-2">AI Doctor</h3>
+          <div className="max-h-44 overflow-y-auto space-y-2 mb-2">
+            {messages.map((m, i) => (
+              <p key={i} className={`text-sm ${m.role === "user" ? "text-gray-900" : "text-gray-600"}`}>
+                {m.text}
+              </p>
+            ))}
+          </div>
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              askDoctor();
+            }}
+          >
+            <input
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="Ask: Why is SGLT2 best here?"
+              className="flex-1 rounded-lg border px-3 py-2 text-sm"
+            />
+            <button type="submit" className="rounded-lg border px-3 py-2 text-sm">
+              Ask
+            </button>
+          </form>
+        </div>
+      )}
       <p className="text-sm text-gray-700 mb-2">Mode</p>
       <div className="flex flex-wrap gap-2 mb-4">
         <button
@@ -148,4 +223,34 @@ export function CasePlayer() {
       )}
     </div>
   );
+}
+
+function generateDoctorResponse(
+  question: string,
+  patient: (typeof cases)[number],
+  drugs: ReturnType<typeof getAllDrugs>,
+  selectedDrugId: string | null,
+  feedback: ReturnType<typeof gradeChoice>
+) {
+  const q = question.toLowerCase();
+  const selectedDrug = selectedDrugId ? drugs.find(d => d.id === selectedDrugId) ?? null : null;
+  const bestDrug = drugs.find(d => d.id === patient.bestAlternative) ?? null;
+  const mentionedDrug = drugs.find((d) => q.includes(d.name.toLowerCase()) || q.includes(d.id.toLowerCase())) ?? null;
+
+  if (q.includes("best") || q.includes("recommend")) {
+    return bestDrug
+      ? `Best choice is ${bestDrug.name}. ${patient.teachingPoint}`
+      : "I cannot identify the best choice from this case data.";
+  }
+  if (mentionedDrug) {
+    return `${mentionedDrug.name}: Benefits - ${mentionedDrug.benefits.join(", ")}. Side effects - ${mentionedDrug.risks.join(", ")}.`;
+  }
+  if (q.includes("side effect") || q.includes("risk")) {
+    if (selectedDrug) return `For ${selectedDrug.name}, monitor: ${selectedDrug.risks.join(", ")}.`;
+    return "Pick a medication first and I can summarize its major side effects.";
+  }
+  if (feedback && selectedDrug) {
+    return `Current selection: ${selectedDrug.name}. ${feedback.headline}.`;
+  }
+  return "Ask me: best medication, why one option is safer, or side effects to monitor.";
 }
