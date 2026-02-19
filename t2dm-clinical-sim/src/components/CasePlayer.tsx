@@ -76,19 +76,15 @@ export function CasePlayer() {
   const scoredTestingAttempts = useRef<Set<string>>(new Set());
   const difficultyLevel: DifficultyLevel =
     scoredPoints >= 1500 ? "advanced" : scoredPoints >= 1000 ? "intermediate" : "basic";
-  const allowedTestingQuestionTypes: QuestionType[] = useMemo(
-    () =>
-      difficultyLevel === "advanced" || difficultyLevel === "intermediate"
-          ? ["mcq", "short_answer"]
-          : ["mcq"],
-    [difficultyLevel]
-  );
+  const allowedTestingQuestionTypes: QuestionType[] = useMemo(() => ["short_answer"], []);
   const doctorMood: DoctorMood = mode === "diagnostic"
     ? getDoctorMoodFromScore(diagnosticReview?.score)
     : getDoctorMoodFromScore(feedback?.score);
   const doctorPromptText = buildDoctorPromptText({
     mode,
     diagnosticDrugName: diagnosticDrug?.name ?? null,
+    selectedDrugName,
+    feedbackScore: feedback?.score,
   });
   const hasAskedDoctor = doctorMessages.some((message) => message.role === "user");
   const latestDoctorReply = hasAskedDoctor
@@ -126,7 +122,7 @@ export function CasePlayer() {
   useEffect(() => {
     if (mode !== "testing") return;
     if (allowedTestingQuestionTypes.includes(questionType)) return;
-    setQuestionType("mcq");
+    setQuestionType("short_answer");
   }, [mode, allowedTestingQuestionTypes, questionType]);
 
   useEffect(() => {
@@ -142,7 +138,11 @@ export function CasePlayer() {
   function switchMode(nextMode: Mode) {
     setMode(nextMode);
     resetAttemptState();
+    if (nextMode === "browse") {
+      setQuestionType("mcq");
+    }
     if (nextMode === "testing") {
+      setQuestionType("short_answer");
       setTestingIndex(0);
     }
     if (nextMode === "diagnostic") {
@@ -323,18 +323,13 @@ export function CasePlayer() {
             </button>
           </div>
         )}
-        {mode === "browse" && (
+        {mode !== "browse" && (
           <div className="quiz-actions">
-            <button type="button" onClick={nextAttempt}>
-              Try Another Choice
+            <button type="button" onClick={openDoctorFromFeedback}>
+              Speak to AI Doctor
             </button>
           </div>
         )}
-        <div className="quiz-actions">
-          <button type="button" onClick={openDoctorFromFeedback}>
-            Speak to AI Doctor
-          </button>
-        </div>
       </div>
     );
   }
@@ -565,29 +560,30 @@ export function CasePlayer() {
             ) : (
               <>
                 <h3>{mode === "testing" ? "Pick one medication" : "Medication choices"}</h3>
-                <div className="question-type-switch" role="tablist" aria-label="Question style">
-                  <button
-                    type="button"
-                    className={questionType === "mcq" ? "active" : ""}
-                    onClick={() => {
-                      setQuestionType("mcq");
-                      nextAttempt();
-                    }}
-                  >
-                    MCQ
-                  </button>
-                  <button
-                    type="button"
-                    className={questionType === "short_answer" ? "active" : ""}
-                    disabled={mode === "testing" && !allowedTestingQuestionTypes.includes("short_answer")}
-                    onClick={() => {
-                      setQuestionType("short_answer");
-                      nextAttempt();
-                    }}
-                  >
-                    Short Answer
-                  </button>
-                </div>
+                {mode !== "testing" && (
+                  <div className="question-type-switch" role="tablist" aria-label="Question style">
+                    <button
+                      type="button"
+                      className={questionType === "mcq" ? "active" : ""}
+                      onClick={() => {
+                        setQuestionType("mcq");
+                        nextAttempt();
+                      }}
+                    >
+                      MCQ
+                    </button>
+                    <button
+                      type="button"
+                      className={questionType === "short_answer" ? "active" : ""}
+                      onClick={() => {
+                        setQuestionType("short_answer");
+                        nextAttempt();
+                      }}
+                    >
+                      Short Answer
+                    </button>
+                  </div>
+                )}
                 <div className="hint-row">
                   <button type="button" className="hint-toggle" onClick={() => setShowHint((v) => !v)}>
                     {showHint ? "Hide hint" : "Show hint"}
@@ -595,12 +591,11 @@ export function CasePlayer() {
                   {showHint && <p className="hint-text">{questionHint}</p>}
                 </div>
 
-                {questionType === "mcq" && (
+                {mode !== "testing" && questionType === "mcq" && (
                   <div className="drug-grid">
                     {drugs.map((drug) => {
                       const selected = choice === drug.id;
-                      const disabled =
-                        (mode === "testing" && (testingAnswered || testingComplete)) || learningConsolidationActive;
+                      const disabled = learningConsolidationActive;
                       return (
                         <div key={drug.id} className="drug-option-wrap">
                           <button
@@ -827,9 +822,13 @@ function getDoctorMoodFromScore(score?: number): DoctorMood {
 function buildDoctorPromptText({
   mode,
   diagnosticDrugName,
+  selectedDrugName,
+  feedbackScore,
 }: {
   mode: Mode;
   diagnosticDrugName: string | null;
+  selectedDrugName: string | null;
+  feedbackScore?: number;
 }) {
   if (mode === "diagnostic" && diagnosticDrugName) {
     return pickBubbleVariant(
@@ -847,6 +846,11 @@ function buildDoctorPromptText({
   }
 
   if (mode === "browse") {
+    if (selectedDrugName && typeof feedbackScore === "number") {
+      if (feedbackScore >= 85) return `${selectedDrugName}: strong pick for this patient.`;
+      if (feedbackScore >= 60) return `${selectedDrugName}: reasonable, but there may be a better fit.`;
+      return `${selectedDrugName}: weak fit here, re-check risks and priorities.`;
+    }
     return "Do you have any questions?";
   }
 

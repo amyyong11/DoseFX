@@ -3630,19 +3630,16 @@ function CasePlayer() {
     const scoredTestingAttempts = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(new Set());
     const difficultyLevel = scoredPoints >= 1500 ? "advanced" : scoredPoints >= 1000 ? "intermediate" : "basic";
     const allowedTestingQuestionTypes = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
-        "CasePlayer.useMemo[allowedTestingQuestionTypes]": ()=>difficultyLevel === "advanced" || difficultyLevel === "intermediate" ? [
-                "mcq",
+        "CasePlayer.useMemo[allowedTestingQuestionTypes]": ()=>[
                 "short_answer"
-            ] : [
-                "mcq"
             ]
-    }["CasePlayer.useMemo[allowedTestingQuestionTypes]"], [
-        difficultyLevel
-    ]);
+    }["CasePlayer.useMemo[allowedTestingQuestionTypes]"], []);
     const doctorMood = mode === "diagnostic" ? getDoctorMoodFromScore(diagnosticReview?.score) : getDoctorMoodFromScore(feedback?.score);
     const doctorPromptText = buildDoctorPromptText({
         mode,
-        diagnosticDrugName: diagnosticDrug?.name ?? null
+        diagnosticDrugName: diagnosticDrug?.name ?? null,
+        selectedDrugName,
+        feedbackScore: feedback?.score
     });
     const hasAskedDoctor = doctorMessages.some((message)=>message.role === "user");
     const latestDoctorReply = hasAskedDoctor ? [
@@ -3700,7 +3697,7 @@ function CasePlayer() {
         "CasePlayer.useEffect": ()=>{
             if (mode !== "testing") return;
             if (allowedTestingQuestionTypes.includes(questionType)) return;
-            setQuestionType("mcq");
+            setQuestionType("short_answer");
         }
     }["CasePlayer.useEffect"], [
         mode,
@@ -3730,7 +3727,11 @@ function CasePlayer() {
     function switchMode(nextMode) {
         setMode(nextMode);
         resetAttemptState();
+        if (nextMode === "browse") {
+            setQuestionType("mcq");
+        }
         if (nextMode === "testing") {
+            setQuestionType("short_answer");
             setTestingIndex(0);
         }
         if (nextMode === "diagnostic") {
@@ -4017,12 +4018,12 @@ function CasePlayer() {
                     lineNumber: 314,
                     columnNumber: 11
                 }, this),
-                mode === "browse" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                mode !== "browse" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "quiz-actions",
                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                         type: "button",
-                        onClick: nextAttempt,
-                        children: "Try Another Choice"
+                        onClick: openDoctorFromFeedback,
+                        children: "Speak to AI Doctor"
                     }, void 0, false, {
                         fileName: "[project]/src/components/CasePlayer.tsx",
                         lineNumber: 328,
@@ -4032,22 +4033,6 @@ function CasePlayer() {
                     fileName: "[project]/src/components/CasePlayer.tsx",
                     lineNumber: 327,
                     columnNumber: 11
-                }, this),
-                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "quiz-actions",
-                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                        type: "button",
-                        onClick: openDoctorFromFeedback,
-                        children: "Speak to AI Doctor"
-                    }, void 0, false, {
-                        fileName: "[project]/src/components/CasePlayer.tsx",
-                        lineNumber: 334,
-                        columnNumber: 11
-                    }, this)
-                }, void 0, false, {
-                    fileName: "[project]/src/components/CasePlayer.tsx",
-                    lineNumber: 333,
-                    columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
@@ -4071,7 +4056,7 @@ function CasePlayer() {
                     doctorShowBubble: true
                 }, void 0, false, {
                     fileName: "[project]/src/components/CasePlayer.tsx",
-                    lineNumber: 345,
+                    lineNumber: 340,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4085,7 +4070,7 @@ function CasePlayer() {
                                     children: "Simulose"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 356,
+                                    lineNumber: 351,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -4093,13 +4078,13 @@ function CasePlayer() {
                                     children: "Patient medication simulator"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 357,
+                                    lineNumber: 352,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/CasePlayer.tsx",
-                            lineNumber: 355,
+                            lineNumber: 350,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4116,7 +4101,7 @@ function CasePlayer() {
                                         children: "Choose a mode"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 366,
+                                        lineNumber: 361,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -4124,7 +4109,7 @@ function CasePlayer() {
                                         children: "Browse Mode"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 369,
+                                        lineNumber: 364,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -4132,7 +4117,7 @@ function CasePlayer() {
                                         children: "Learning Mode"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 370,
+                                        lineNumber: 365,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -4140,7 +4125,7 @@ function CasePlayer() {
                                         children: "Testing Mode"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 371,
+                                        lineNumber: 366,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -4148,18 +4133,18 @@ function CasePlayer() {
                                         children: "Diagnostic View"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 372,
+                                        lineNumber: 367,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                lineNumber: 360,
+                                lineNumber: 355,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/CasePlayer.tsx",
-                            lineNumber: 359,
+                            lineNumber: 354,
                             columnNumber: 11
                         }, this),
                         (mode === "testing" || mode === "diagnostic") && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4172,7 +4157,7 @@ function CasePlayer() {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/CasePlayer.tsx",
-                            lineNumber: 376,
+                            lineNumber: 371,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4193,7 +4178,7 @@ function CasePlayer() {
                                             children: "Patient list"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 392,
+                                            lineNumber: 387,
                                             columnNumber: 19
                                         }, this),
                                         cases.map((c)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -4201,13 +4186,13 @@ function CasePlayer() {
                                                 children: c.title
                                             }, c.id, false, {
                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                lineNumber: 396,
+                                                lineNumber: 391,
                                                 columnNumber: 21
                                             }, this))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 383,
+                                    lineNumber: 378,
                                     columnNumber: 17
                                 }, this)
                             }, void 0, false) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4215,18 +4200,18 @@ function CasePlayer() {
                                 children: testingComplete ? "Testing complete" : `Patient ${testingIndex + 1} of ${cases.length}`
                             }, void 0, false, {
                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                lineNumber: 403,
+                                lineNumber: 398,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/src/components/CasePlayer.tsx",
-                            lineNumber: 380,
+                            lineNumber: 375,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/CasePlayer.tsx",
-                    lineNumber: 354,
+                    lineNumber: 349,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4241,7 +4226,7 @@ function CasePlayer() {
                             children: showDoctor ? "Hide Chat" : "Open Chat"
                         }, void 0, false, {
                             fileName: "[project]/src/components/CasePlayer.tsx",
-                            lineNumber: 412,
+                            lineNumber: 407,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4260,12 +4245,12 @@ function CasePlayer() {
                                         children: "🗝️"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 432,
+                                        lineNumber: 427,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 423,
+                                    lineNumber: 418,
                                     columnNumber: 13
                                 }, this),
                                 showEmojiKey && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4277,7 +4262,7 @@ function CasePlayer() {
                                             children: "Feedback scale"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 436,
+                                            lineNumber: 431,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4285,7 +4270,7 @@ function CasePlayer() {
                                             children: "😁 95-100: excellent match"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 437,
+                                            lineNumber: 432,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4293,7 +4278,7 @@ function CasePlayer() {
                                             children: "👍 80-94: strong choice"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 438,
+                                            lineNumber: 433,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4301,7 +4286,7 @@ function CasePlayer() {
                                             children: "😐 60-79: acceptable"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 439,
+                                            lineNumber: 434,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4309,7 +4294,7 @@ function CasePlayer() {
                                             children: "😓 40-59: weak fit"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 440,
+                                            lineNumber: 435,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4317,7 +4302,7 @@ function CasePlayer() {
                                             children: "☹️ 20-39: poor choice"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 441,
+                                            lineNumber: 436,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4325,25 +4310,25 @@ function CasePlayer() {
                                             children: "💀 0-19: dangerous choice"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 442,
+                                            lineNumber: 437,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 435,
+                                    lineNumber: 430,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/CasePlayer.tsx",
-                            lineNumber: 422,
+                            lineNumber: 417,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/CasePlayer.tsx",
-                    lineNumber: 410,
+                    lineNumber: 405,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4356,14 +4341,14 @@ function CasePlayer() {
                                     children: patient.title
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 450,
+                                    lineNumber: 445,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                     children: patient.summary
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 451,
+                                    lineNumber: 446,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4374,7 +4359,7 @@ function CasePlayer() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 452,
+                                    lineNumber: 447,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4384,12 +4369,12 @@ function CasePlayer() {
                                             children: tag.label
                                         }, tag.label, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 457,
+                                            lineNumber: 452,
                                             columnNumber: 17
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 455,
+                                    lineNumber: 450,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -4397,7 +4382,7 @@ function CasePlayer() {
                                     children: "Patient Stats"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 462,
+                                    lineNumber: 457,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4409,7 +4394,7 @@ function CasePlayer() {
                                                     children: "A1c"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                                    lineNumber: 465,
+                                                    lineNumber: 460,
                                                     columnNumber: 17
                                                 }, this),
                                                 patient.features.a1c,
@@ -4419,7 +4404,7 @@ function CasePlayer() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 464,
+                                            lineNumber: 459,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -4428,7 +4413,7 @@ function CasePlayer() {
                                                     children: "Kidney function"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                                    lineNumber: 469,
+                                                    lineNumber: 464,
                                                     columnNumber: 17
                                                 }, this),
                                                 "eGFR ",
@@ -4439,7 +4424,7 @@ function CasePlayer() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 468,
+                                            lineNumber: 463,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -4448,7 +4433,7 @@ function CasePlayer() {
                                                     children: "BMI"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                                    lineNumber: 473,
+                                                    lineNumber: 468,
                                                     columnNumber: 17
                                                 }, this),
                                                 patient.features.bmi,
@@ -4458,7 +4443,7 @@ function CasePlayer() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 472,
+                                            lineNumber: 467,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -4467,14 +4452,14 @@ function CasePlayer() {
                                                     children: "CV disease"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                                    lineNumber: 477,
+                                                    lineNumber: 472,
                                                     columnNumber: 17
                                                 }, this),
                                                 patient.features.ascvd ? "Established ASCVD" : "No known ASCVD"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 476,
+                                            lineNumber: 471,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -4483,14 +4468,14 @@ function CasePlayer() {
                                                     children: "Hypoglycemia risk"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                                    lineNumber: 481,
+                                                    lineNumber: 476,
                                                     columnNumber: 17
                                                 }, this),
                                                 patient.features.hypoglycemiaRisk ? "High - avoid low-triggering meds" : "Lower risk"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 480,
+                                            lineNumber: 475,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -4499,26 +4484,26 @@ function CasePlayer() {
                                                     children: "Cost consideration"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                                    lineNumber: 485,
+                                                    lineNumber: 480,
                                                     columnNumber: 17
                                                 }, this),
                                                 patient.features.costSensitive ? "Important" : "Not primary"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 484,
+                                            lineNumber: 479,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 463,
+                                    lineNumber: 458,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/CasePlayer.tsx",
-                            lineNumber: 449,
+                            lineNumber: 444,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4529,7 +4514,7 @@ function CasePlayer() {
                                     children: "Progress"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 491,
+                                    lineNumber: 486,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4540,7 +4525,7 @@ function CasePlayer() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 492,
+                                    lineNumber: 487,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4551,19 +4536,19 @@ function CasePlayer() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 493,
+                                    lineNumber: 488,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/CasePlayer.tsx",
-                            lineNumber: 490,
+                            lineNumber: 485,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/CasePlayer.tsx",
-                    lineNumber: 448,
+                    lineNumber: 443,
                     columnNumber: 9
                 }, this),
                 mode !== "diagnostic" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4581,7 +4566,7 @@ function CasePlayer() {
                                             children: "AI Doctor"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 502,
+                                            lineNumber: 497,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -4591,13 +4576,13 @@ function CasePlayer() {
                                             children: "Close"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 503,
+                                            lineNumber: 498,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 501,
+                                    lineNumber: 496,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4605,7 +4590,7 @@ function CasePlayer() {
                                     children: "Educational coach for this case"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 511,
+                                    lineNumber: 506,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4615,12 +4600,12 @@ function CasePlayer() {
                                             children: message.text
                                         }, `${message.role}-${idx}`, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 516,
+                                            lineNumber: 511,
                                             columnNumber: 19
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 512,
+                                    lineNumber: 507,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -4638,7 +4623,7 @@ function CasePlayer() {
                                             onChange: (e)=>setDoctorQuestion(e.target.value)
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 528,
+                                            lineNumber: 523,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -4648,19 +4633,19 @@ function CasePlayer() {
                                             children: doctorLoading ? "Thinking..." : "Ask"
                                         }, void 0, false, {
                                             fileName: "[project]/src/components/CasePlayer.tsx",
-                                            lineNumber: 535,
+                                            lineNumber: 530,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 521,
+                                    lineNumber: 516,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/CasePlayer.tsx",
-                            lineNumber: 500,
+                            lineNumber: 495,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4671,7 +4656,7 @@ function CasePlayer() {
                                         children: "Recall Summary"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 545,
+                                        lineNumber: 540,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4683,7 +4668,7 @@ function CasePlayer() {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 546,
+                                        lineNumber: 541,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -4692,12 +4677,12 @@ function CasePlayer() {
                                                 children: item
                                             }, item, false, {
                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                lineNumber: 551,
+                                                lineNumber: 546,
                                                 columnNumber: 21
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 549,
+                                        lineNumber: 544,
                                         columnNumber: 17
                                     }, this),
                                     feedback.sideEffects.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -4707,7 +4692,7 @@ function CasePlayer() {
                                                 children: "Monitor for"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                lineNumber: 556,
+                                                lineNumber: 551,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -4716,12 +4701,12 @@ function CasePlayer() {
                                                         children: effect
                                                     }, effect, false, {
                                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                                        lineNumber: 559,
+                                                        lineNumber: 554,
                                                         columnNumber: 25
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                lineNumber: 557,
+                                                lineNumber: 552,
                                                 columnNumber: 21
                                             }, this)
                                         ]
@@ -4733,10 +4718,10 @@ function CasePlayer() {
                                         children: mode === "testing" ? "Pick one medication" : "Medication choices"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 567,
+                                        lineNumber: 562,
                                         columnNumber: 17
                                     }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    mode !== "testing" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "question-type-switch",
                                         role: "tablist",
                                         "aria-label": "Question style",
@@ -4751,13 +4736,12 @@ function CasePlayer() {
                                                 children: "MCQ"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                lineNumber: 569,
-                                                columnNumber: 19
+                                                lineNumber: 565,
+                                                columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                 type: "button",
                                                 className: questionType === "short_answer" ? "active" : "",
-                                                disabled: mode === "testing" && !allowedTestingQuestionTypes.includes("short_answer"),
                                                 onClick: ()=>{
                                                     setQuestionType("short_answer");
                                                     nextAttempt();
@@ -4765,14 +4749,14 @@ function CasePlayer() {
                                                 children: "Short Answer"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                lineNumber: 579,
-                                                columnNumber: 19
+                                                lineNumber: 575,
+                                                columnNumber: 21
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 568,
-                                        columnNumber: 17
+                                        lineNumber: 564,
+                                        columnNumber: 19
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "hint-row",
@@ -4784,7 +4768,7 @@ function CasePlayer() {
                                                 children: showHint ? "Hide hint" : "Show hint"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                lineNumber: 592,
+                                                lineNumber: 588,
                                                 columnNumber: 19
                                             }, this),
                                             showHint && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4792,20 +4776,20 @@ function CasePlayer() {
                                                 children: questionHint
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                lineNumber: 595,
+                                                lineNumber: 591,
                                                 columnNumber: 32
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 591,
+                                        lineNumber: 587,
                                         columnNumber: 17
                                     }, this),
-                                    questionType === "mcq" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    mode !== "testing" && questionType === "mcq" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "drug-grid",
                                         children: drugs.map((drug)=>{
                                             const selected = choice === drug.id;
-                                            const disabled = mode === "testing" && (testingAnswered || testingComplete) || learningConsolidationActive;
+                                            const disabled = learningConsolidationActive;
                                             return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "drug-option-wrap",
                                                 children: [
@@ -4820,7 +4804,7 @@ function CasePlayer() {
                                                                 children: drug.name
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                                lineNumber: 612,
+                                                                lineNumber: 607,
                                                                 columnNumber: 29
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4831,7 +4815,7 @@ function CasePlayer() {
                                                                         children: "What it is"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                                                        lineNumber: 614,
+                                                                        lineNumber: 609,
                                                                         columnNumber: 31
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4839,13 +4823,13 @@ function CasePlayer() {
                                                                         children: drug.description
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                                                        lineNumber: 615,
+                                                                        lineNumber: 610,
                                                                         columnNumber: 31
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                                lineNumber: 613,
+                                                                lineNumber: 608,
                                                                 columnNumber: 29
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4856,7 +4840,7 @@ function CasePlayer() {
                                                                         children: "Benefits"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                                                        lineNumber: 618,
+                                                                        lineNumber: 613,
                                                                         columnNumber: 31
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -4865,18 +4849,18 @@ function CasePlayer() {
                                                                                 children: benefit
                                                                             }, `${drug.id}-benefit-${benefit}`, false, {
                                                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                                                lineNumber: 621,
+                                                                                lineNumber: 616,
                                                                                 columnNumber: 35
                                                                             }, this))
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                                                        lineNumber: 619,
+                                                                        lineNumber: 614,
                                                                         columnNumber: 31
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                                lineNumber: 617,
+                                                                lineNumber: 612,
                                                                 columnNumber: 29
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4887,7 +4871,7 @@ function CasePlayer() {
                                                                         children: "Potential side effects"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                                                        lineNumber: 626,
+                                                                        lineNumber: 621,
                                                                         columnNumber: 31
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -4896,37 +4880,37 @@ function CasePlayer() {
                                                                                 children: risk
                                                                             }, `${drug.id}-risk-${risk}`, false, {
                                                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                                                lineNumber: 629,
+                                                                                lineNumber: 624,
                                                                                 columnNumber: 35
                                                                             }, this))
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                                                        lineNumber: 627,
+                                                                        lineNumber: 622,
                                                                         columnNumber: 31
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                                lineNumber: 625,
+                                                                lineNumber: 620,
                                                                 columnNumber: 29
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                                        lineNumber: 606,
+                                                        lineNumber: 601,
                                                         columnNumber: 27
                                                     }, this),
                                                     selected && renderInlineFeedback()
                                                 ]
                                             }, drug.id, true, {
                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                lineNumber: 605,
+                                                lineNumber: 600,
                                                 columnNumber: 25
                                             }, this);
                                         })
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 599,
+                                        lineNumber: 595,
                                         columnNumber: 19
                                     }, this),
                                     questionType === "short_answer" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4937,7 +4921,7 @@ function CasePlayer() {
                                                 children: "Write the best medication class and explain why it fits this patient."
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                lineNumber: 643,
+                                                lineNumber: 638,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -4948,7 +4932,7 @@ function CasePlayer() {
                                                 onChange: (e)=>setShortAnswerInput(e.target.value)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                lineNumber: 646,
+                                                lineNumber: 641,
                                                 columnNumber: 21
                                             }, this),
                                             shortAnswerError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -4956,7 +4940,7 @@ function CasePlayer() {
                                                 children: shortAnswerError
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                lineNumber: 653,
+                                                lineNumber: 648,
                                                 columnNumber: 42
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4967,26 +4951,26 @@ function CasePlayer() {
                                                     children: "Submit Short Answer"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                                    lineNumber: 655,
+                                                    lineNumber: 650,
                                                     columnNumber: 23
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                                lineNumber: 654,
+                                                lineNumber: 649,
                                                 columnNumber: 21
                                             }, this),
                                             feedback && renderInlineFeedback()
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 642,
+                                        lineNumber: 637,
                                         columnNumber: 19
                                     }, this)
                                 ]
                             }, void 0, true)
                         }, void 0, false, {
                             fileName: "[project]/src/components/CasePlayer.tsx",
-                            lineNumber: 542,
+                            lineNumber: 537,
                             columnNumber: 11
                         }, this),
                         mode === "testing" && testingComplete && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4997,7 +4981,7 @@ function CasePlayer() {
                                     children: "Testing complete"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 668,
+                                    lineNumber: 663,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -5005,7 +4989,7 @@ function CasePlayer() {
                                     children: "You reviewed all patient scenarios. Restart to try again."
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 669,
+                                    lineNumber: 664,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5019,18 +5003,18 @@ function CasePlayer() {
                                         children: "Restart Testing"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 671,
+                                        lineNumber: 666,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 670,
+                                    lineNumber: 665,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/CasePlayer.tsx",
-                            lineNumber: 667,
+                            lineNumber: 662,
                             columnNumber: 13
                         }, this),
                         mode === "learning" && learningConsolidationActive && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5041,7 +5025,7 @@ function CasePlayer() {
                                     children: "Consolidation timer"
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 686,
+                                    lineNumber: 681,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -5052,7 +5036,7 @@ function CasePlayer() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 687,
+                                    lineNumber: 682,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -5060,19 +5044,19 @@ function CasePlayer() {
                                     children: "Review the reasoning mentally. The next patient will load automatically."
                                 }, void 0, false, {
                                     fileName: "[project]/src/components/CasePlayer.tsx",
-                                    lineNumber: 688,
+                                    lineNumber: 683,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/components/CasePlayer.tsx",
-                            lineNumber: 685,
+                            lineNumber: 680,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/CasePlayer.tsx",
-                    lineNumber: 498,
+                    lineNumber: 493,
                     columnNumber: 9
                 }, this),
                 mode === "diagnostic" && diagnosticDrug && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5085,7 +5069,7 @@ function CasePlayer() {
                                 children: "Answer Prompt"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                lineNumber: 699,
+                                lineNumber: 694,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -5097,7 +5081,7 @@ function CasePlayer() {
                                 disabled: !!diagnosticReview
                             }, void 0, false, {
                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                lineNumber: 700,
+                                lineNumber: 695,
                                 columnNumber: 15
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -5110,7 +5094,7 @@ function CasePlayer() {
                                         children: "Submit Thoughts"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 709,
+                                        lineNumber: 704,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -5124,35 +5108,35 @@ function CasePlayer() {
                                         children: "New Medication Prompt"
                                     }, void 0, false, {
                                         fileName: "[project]/src/components/CasePlayer.tsx",
-                                        lineNumber: 712,
+                                        lineNumber: 707,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/CasePlayer.tsx",
-                                lineNumber: 708,
+                                lineNumber: 703,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/CasePlayer.tsx",
-                        lineNumber: 698,
+                        lineNumber: 693,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/components/CasePlayer.tsx",
-                    lineNumber: 697,
+                    lineNumber: 692,
                     columnNumber: 11
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/CasePlayer.tsx",
-            lineNumber: 344,
+            lineNumber: 339,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/components/CasePlayer.tsx",
-        lineNumber: 343,
+        lineNumber: 338,
         columnNumber: 5
     }, this);
 }
@@ -5236,7 +5220,7 @@ function getDoctorMoodFromScore(score) {
     if (score >= 45) return "concerned";
     return "strict";
 }
-function buildDoctorPromptText({ mode, diagnosticDrugName }) {
+function buildDoctorPromptText({ mode, diagnosticDrugName, selectedDrugName, feedbackScore }) {
     if (mode === "diagnostic" && diagnosticDrugName) {
         return pickBubbleVariant([
             `Diagnostic question: Would you use ${diagnosticDrugName} for this patient, and why?`,
@@ -5248,6 +5232,11 @@ function buildDoctorPromptText({ mode, diagnosticDrugName }) {
         return "Diagnostic mode: Is this medication the best choice for this patient?";
     }
     if (mode === "browse") {
+        if (selectedDrugName && typeof feedbackScore === "number") {
+            if (feedbackScore >= 85) return `${selectedDrugName}: strong pick for this patient.`;
+            if (feedbackScore >= 60) return `${selectedDrugName}: reasonable, but there may be a better fit.`;
+            return `${selectedDrugName}: weak fit here, re-check risks and priorities.`;
+        }
         return "Do you have any questions?";
     }
     if (mode === "learning") {
