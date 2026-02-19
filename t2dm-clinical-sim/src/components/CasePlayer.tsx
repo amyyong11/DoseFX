@@ -88,14 +88,8 @@ export function CasePlayer() {
     : getDoctorMoodFromScore(feedback?.score);
   const doctorPromptText = buildDoctorPromptText({
     mode,
-    difficultyLevel,
     diagnosticDrugName: diagnosticDrug?.name ?? null,
-    diagnosticReview,
-    selectedDrugName,
-    feedbackScore: feedback?.score,
   });
-  const latestDoctorReply = [...doctorMessages].reverse().find((message) => message.role === "assistant")?.text ?? null;
-  const doctorBubbleText = latestDoctorReply ?? doctorPromptText;
 
   useEffect(() => {
     if (diagnosticDrugId || drugs.length === 0) return;
@@ -348,7 +342,7 @@ export function CasePlayer() {
           reaction={reaction}
           celebrateIdeal={celebrateIdeal}
           feedbackEmoji={feedback ? feedbackEmoji : null}
-          doctorPromptText={doctorBubbleText}
+          doctorPromptText={doctorPromptText}
           doctorMood={doctorMood}
           doctorShowBubble
         />
@@ -827,117 +821,38 @@ function getDoctorMoodFromScore(score?: number): DoctorMood {
 
 function buildDoctorPromptText({
   mode,
-  difficultyLevel,
   diagnosticDrugName,
-  diagnosticReview,
-  selectedDrugName,
-  feedbackScore,
 }: {
   mode: Mode;
-  difficultyLevel: DifficultyLevel;
   diagnosticDrugName: string | null;
-  diagnosticReview: DiagnosticReview | null;
-  selectedDrugName: string | null;
-  feedbackScore?: number;
 }) {
   if (mode === "diagnostic" && diagnosticDrugName) {
-    if (diagnosticReview) {
-      const topGap = diagnosticReview.gaps[0];
-      return topGap
-        ? `Score ${diagnosticReview.score}/100. ${diagnosticReview.summary} Next step: ${topGap}`
-        : `Score ${diagnosticReview.score}/100. ${diagnosticReview.summary}`;
-    }
-    if (difficultyLevel === "advanced") {
-      return `Diagnostic challenge: Is ${diagnosticDrugName} the right choice for this patient? Explain using renal context, risk tradeoffs, and better alternatives.`;
-    }
-    if (difficultyLevel === "intermediate") {
-      return `Medication check: Would you choose ${diagnosticDrugName} here? Explain why or why not, then list monitoring priorities.`;
-    }
-    return `Quick question: Would you use ${diagnosticDrugName} for this patient? Why or why not?`;
-  }
-
-  if (mode === "browse" || mode === "learning") {
-    return "Ask me any questions.";
-  }
-
-  if (!selectedDrugName || typeof feedbackScore !== "number") {
-    if (mode === "testing") return "What would you choose?";
-    return "Share your reasoning for this case.";
-  }
-
-  const tone =
-    feedbackScore >= 95
-      ? 5
-      : feedbackScore >= 80
-        ? 4
-        : feedbackScore >= 60
-          ? 3
-          : feedbackScore >= 40
-            ? 2
-            : feedbackScore >= 20
-              ? 1
-              : 0;
-  const seed = `${selectedDrugName}:${tone}`;
-
-  if (tone === 5) {
     return pickBubbleVariant(
       [
-        `${selectedDrugName}? Chef's kiss. Gold-standard move.`,
-        `Perfect read. ${selectedDrugName} fits this patient like a glove.`,
-        `${selectedDrugName} is elite here. Keep this clinical energy.`,
+        `Diagnostic question: Would you use ${diagnosticDrugName} for this patient, and why?`,
+        `Medication challenge: Is ${diagnosticDrugName} appropriate here or should we avoid it?`,
+        `Quick check: How would you justify ${diagnosticDrugName} in this case?`,
       ],
-      seed
-    );
-  }
-  if (tone === 4) {
-    return pickBubbleVariant(
-      [
-        `${selectedDrugName} is a strong pick. Nice judgment.`,
-        `Solid choice: ${selectedDrugName} checks most of the right boxes.`,
-        `${selectedDrugName} works well here. Good clinical instincts.`,
-      ],
-      seed
-    );
-  }
-  if (tone === 3) {
-    return pickBubbleVariant(
-      [
-        `${selectedDrugName} is acceptable, but there is a sharper option.`,
-        `Decent pick. Let's refine it with kidney + hypo priorities.`,
-        `${selectedDrugName} can work, but it is not my first move.`,
-      ],
-      seed
-    );
-  }
-  if (tone === 2) {
-    return pickBubbleVariant(
-      [
-        `${selectedDrugName} makes me nervous for this profile.`,
-        `Risky lane: ${selectedDrugName} misses key patient priorities.`,
-        `${selectedDrugName} is shaky here. Re-check safety tradeoffs.`,
-      ],
-      seed
-    );
-  }
-  if (tone === 1) {
-    return pickBubbleVariant(
-      [
-        `${selectedDrugName}? whattttt?! Check kidney function and hypo risk.`,
-        `Whoa, bold choice. ${selectedDrugName} is a rough fit here.`,
-        `${selectedDrugName}? Red flag vibes. Let's reassess.`,
-      ],
-      seed
+      `diagnostic:${diagnosticDrugName}`
     );
   }
 
-  return pickBubbleVariant(
-    [
-      `${selectedDrugName}? Hard no. This could seriously harm the patient.`,
-      `Emergency brake: ${selectedDrugName} is unsafe in this context.`,
-      `${selectedDrugName} is a dangerous mismatch for this case.`,
-    ],
-    seed
-  );
+  if (mode === "diagnostic") {
+    return "Diagnostic mode: Is this medication the best choice for this patient?";
+  }
+
+  if (mode === "browse") {
+    return "Do you have any questions?";
+  }
+
+  if (mode === "learning") {
+    return "Which medication would you choose?";
+  }
+
+  if (mode === "testing") {
+    return "Which medication would you choose?";
+  }
+  return "Do you have any questions?";
 }
 
 function pickBubbleVariant(options: string[], seed: string) {
