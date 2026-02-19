@@ -5,32 +5,47 @@ type DoctorRequest = {
   context?: unknown;
 };
 
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
-const GEMINI_MODELS = [
-  "gemini-2.0-flash",
-  "gemini-2.0-flash-001",
-  "gemini-2.0-flash-lite",
+const OPENAI_API_URL = "https://api.openai.com/v1/responses";
+const OPENAI_MODELS = [
+  "gpt-4.1-mini",
+  "gpt-4o-mini",
 ] as const;
 
-function extractGeminiText(data: unknown): string | null {
+function extractOpenAIText(data: unknown): string | null {
   if (!data || typeof data !== "object") return null;
 
+  const outputText = (data as { output_text?: unknown }).output_text;
+  if (typeof outputText === "string" && outputText.trim().length > 0) {
+    return outputText.trim();
+  }
+
   const chunks: string[] = [];
-  const candidates = (data as { candidates?: unknown }).candidates;
-  if (!Array.isArray(candidates)) return null;
+  const output = (data as { output?: unknown }).output;
+  if (!Array.isArray(output)) return null;
 
-  for (const candidate of candidates) {
-    if (!candidate || typeof candidate !== "object") continue;
-    const content = (candidate as { content?: unknown }).content;
-    if (!content || typeof content !== "object") continue;
-    const parts = (content as { parts?: unknown }).parts;
-    if (!Array.isArray(parts)) continue;
+  for (const item of output) {
+    if (!item || typeof item !== "object") continue;
+    const content = (item as { content?: unknown }).content;
+    if (!Array.isArray(content)) continue;
 
-    for (const part of parts) {
+    for (const part of content) {
       if (!part || typeof part !== "object") continue;
+      const textValue = (part as { text?: unknown }).text;
+      if (typeof textValue === "string" && textValue.trim().length > 0) {
+        chunks.push(textValue.trim());
+      }
+
+      const nestedText = (part as { text?: { value?: unknown } }).text?.value;
+      if (typeof nestedText === "string" && nestedText.trim().length > 0) {
+        chunks.push(nestedText.trim());
+      }
+
       const text = (part as { text?: unknown }).text;
-      if (typeof text === "string" && text.trim().length > 0) {
-        chunks.push(text.trim());
+      if (text && typeof text === "object") {
+        const value = (text as { value?: unknown }).value;
+        if (typeof value === "string" && value.trim().length > 0) {
+          chunks.push(value.trim());
+        }
       }
     }
   }
@@ -39,10 +54,10 @@ function extractGeminiText(data: unknown): string | null {
 }
 
 export async function POST(req: Request) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === "your_gemini_api_key_here") {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey || apiKey === "your_openai_api_key_here") {
     return NextResponse.json(
-      { error: "Missing GEMINI_API_KEY on server." },
+      { error: "Missing OPENAI_API_KEY on server." },
       { status: 500 }
     );
   }
@@ -74,31 +89,23 @@ export async function POST(req: Request) {
 
   try {
     const errors: string[] = [];
-    const configuredModel = process.env.GEMINI_MODEL?.trim();
+    const configuredModel = process.env.OPENAI_MODEL?.trim();
     const models = configuredModel
-      ? ([configuredModel, ...GEMINI_MODELS.filter((m) => m !== configuredModel)] as const)
-      : GEMINI_MODELS;
+      ? ([configuredModel, ...OPENAI_MODELS.filter((m) => m !== configuredModel)] as const)
+      : OPENAI_MODELS;
 
     for (const model of models) {
-      const resp = await fetch(`${GEMINI_API_URL}/${model}:generateContent`, {
+      const resp = await fetch(OPENAI_API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: systemInstruction }],
-          },
-          contents: [
-            {
-              role: "user",
-              parts: [{ text: userPrompt }],
-            },
-          ],
-          generationConfig: {
-            maxOutputTokens: 350,
-          },
+          model,
+          instructions: systemInstruction,
+          input: userPrompt,
+          max_output_tokens: 350,
         }),
       });
 
@@ -109,7 +116,7 @@ export async function POST(req: Request) {
       }
 
       const data = (await resp.json()) as unknown;
-      const answer = extractGeminiText(data);
+      const answer = extractOpenAIText(data);
       if (answer) {
         return NextResponse.json({ answer });
       }
