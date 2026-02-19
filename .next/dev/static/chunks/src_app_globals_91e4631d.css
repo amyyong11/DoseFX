@@ -731,12 +731,13 @@ html, body {
 }
 
 .hud-bottom {
-  left: 50%;
+  left: auto;
+  right: 16px;
   bottom: max(10px, env(safe-area-inset-bottom));
   z-index: 85;
-  width: min(680px, 100vw - 40px);
-  max-height: min(30vh, 260px);
-  transform: translateX(-50%);
+  width: min(320px, 29vw);
+  max-height: min(44vh, 420px);
+  transform: none;
 }
 
 .hud-panel {
@@ -832,7 +833,8 @@ html, body {
 
 .bottom-prompt-panel {
   gap: 8px;
-  max-height: min(30vh, 260px);
+  min-height: 280px;
+  max-height: min(42vh, 420px);
   display: grid;
   overflow-y: auto;
 }
@@ -849,8 +851,10 @@ html, body {
 }
 
 .bottom-prompt-panel .doctor-input {
-  min-height: 64px;
-  max-height: 104px;
+  justify-self: stretch;
+  width: 100%;
+  min-height: 86px;
+  max-height: 130px;
 }
 
 .bottom-prompt-panel .quiz-actions {

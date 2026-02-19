@@ -90,6 +90,7 @@ export function CasePlayer() {
     mode,
     difficultyLevel,
     diagnosticDrugName: diagnosticDrug?.name ?? null,
+    diagnosticReview,
     selectedDrugName,
     feedbackScore: feedback?.score,
   });
@@ -347,7 +348,7 @@ export function CasePlayer() {
           feedbackEmoji={feedback ? feedbackEmoji : null}
           doctorPromptText={doctorPromptText}
           doctorMood={doctorMood}
-          doctorShowBubble={mode !== "diagnostic"}
+          doctorShowBubble
         />
         <div className="hud hud-top">
           <div className="hud-header">
@@ -824,23 +825,31 @@ function buildDoctorPromptText({
   mode,
   difficultyLevel,
   diagnosticDrugName,
+  diagnosticReview,
   selectedDrugName,
   feedbackScore,
 }: {
   mode: Mode;
   difficultyLevel: DifficultyLevel;
   diagnosticDrugName: string | null;
+  diagnosticReview: DiagnosticReview | null;
   selectedDrugName: string | null;
   feedbackScore?: number;
 }) {
   if (mode === "diagnostic" && diagnosticDrugName) {
+    if (diagnosticReview) {
+      const topGap = diagnosticReview.gaps[0];
+      return topGap
+        ? `Score ${diagnosticReview.score}/100. ${diagnosticReview.summary} Next step: ${topGap}`
+        : `Score ${diagnosticReview.score}/100. ${diagnosticReview.summary}`;
+    }
     if (difficultyLevel === "advanced") {
-      return `High difficulty: Should we use ${diagnosticDrugName}? Justify with renal context, risk tradeoffs, and preferred alternatives.`;
+      return `Diagnostic challenge: Is ${diagnosticDrugName} the right choice for this patient? Explain using renal context, risk tradeoffs, and better alternatives.`;
     }
     if (difficultyLevel === "intermediate") {
-      return `Moderate difficulty: Should we use ${diagnosticDrugName}? Explain why/why not and list monitoring priorities.`;
+      return `Medication check: Would you choose ${diagnosticDrugName} here? Explain why or why not, then list monitoring priorities.`;
     }
-    return `Basic difficulty: Should we use ${diagnosticDrugName}? Explain why or why not.`;
+    return `Quick question: Would you use ${diagnosticDrugName} for this patient? Why or why not?`;
   }
 
   if (mode === "browse" || mode === "learning") {

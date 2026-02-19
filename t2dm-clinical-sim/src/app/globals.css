@@ -427,11 +427,12 @@ body {
 }
 
 .hud-bottom {
-  left: 50%;
+  right: 16px;
+  left: auto;
   bottom: max(10px, env(safe-area-inset-bottom));
-  transform: translateX(-50%);
-  width: min(680px, calc(100vw - 40px));
-  max-height: min(30vh, 260px);
+  transform: none;
+  width: min(320px, 29vw);
+  max-height: min(44vh, 420px);
   z-index: 85;
 }
 
@@ -526,7 +527,8 @@ body {
 }
 
 .bottom-prompt-panel {
-  max-height: min(30vh, 260px);
+  min-height: 280px;
+  max-height: min(42vh, 420px);
   display: grid;
   gap: 8px;
   overflow-y: auto;
@@ -544,8 +546,10 @@ body {
 }
 
 .bottom-prompt-panel .doctor-input {
-  min-height: 64px;
-  max-height: 104px;
+  min-height: 86px;
+  max-height: 130px;
+  width: 100%;
+  justify-self: stretch;
 }
 
 .bottom-prompt-panel .quiz-actions {
