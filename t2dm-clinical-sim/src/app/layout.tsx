@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Simulose | Diabetes Patient Simulator",
+  title: "DoseFX | Diabetes Patient Simulator",
   description:
     "Interactive patient medication simulation for medical learners with 3D clinic environment and character-style patient.",
 };

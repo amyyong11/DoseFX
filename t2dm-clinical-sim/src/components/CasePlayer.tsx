@@ -335,7 +335,7 @@ export function CasePlayer() {
         />
         <div className="hud hud-top">
           <div className="hud-header">
-            <span className="hud-title">Simulose</span>
+            <span className="hud-title">DoseFX</span>
             <span className="hud-subtitle">Patient medication simulator</span>
           </div>
           <div className="mode-picker">
