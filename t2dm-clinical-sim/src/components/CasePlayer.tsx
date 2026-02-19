@@ -28,6 +28,7 @@ export function CasePlayer() {
   const [shortAnswerError, setShortAnswerError] = useState("");
   const [submittedResponseFeedback, setSubmittedResponseFeedback] = useState<Feedback | null>(null);
   const [testingReasoningQualified, setTestingReasoningQualified] = useState(false);
+  const [testingSubmissionId, setTestingSubmissionId] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [breatherSecondsLeft, setBreatherSecondsLeft] = useState(0);
   const [learningPhase, setLearningPhase] = useState<"idle" | "timer">("idle");
@@ -111,14 +112,28 @@ export function CasePlayer() {
   }, [mode, allowedTestingQuestionTypes, questionType]);
 
   useEffect(() => {
-    if (mode !== "testing" || !choice || !feedback || !testingReasoningQualified) return;
-    const attemptKey = `${patient.id}:${testingIndex}:${choice}`;
+    if (mode !== "testing" || testingSubmissionId <= 0 || !submittedResponseFeedback) return;
+    const attemptKey = `${patient.id}:${testingIndex}:${testingSubmissionId}`;
     if (scoredTestingAttempts.current.has(attemptKey)) return;
     scoredTestingAttempts.current.add(attemptKey);
-    if (!patient.appropriate.includes(choice)) return;
-    const earned = getTestingPointsForScore(feedback.score ?? 80);
+    const correctChoice = !!choice && patient.appropriate.includes(choice);
+    const earned = getTestingPointsForAttempt({
+      score: submittedResponseFeedback.score,
+      correctChoice,
+      reasoningQualified: testingReasoningQualified,
+    });
+    if (earned <= 0) return;
     setScoredPoints((prev) => prev + earned);
-  }, [mode, choice, feedback, testingReasoningQualified, patient.id, testingIndex, patient.appropriate]);
+  }, [
+    mode,
+    testingSubmissionId,
+    submittedResponseFeedback,
+    choice,
+    testingReasoningQualified,
+    patient.id,
+    testingIndex,
+    patient.appropriate,
+  ]);
 
   function switchMode(nextMode: Mode) {
     setMode(nextMode);
@@ -151,6 +166,7 @@ export function CasePlayer() {
     setShortAnswerError("");
     setSubmittedResponseFeedback(null);
     setTestingReasoningQualified(false);
+    setTestingSubmissionId(0);
     setShowHint(false);
     setBreatherSecondsLeft(0);
     setLearningPhase("idle");
@@ -169,6 +185,7 @@ export function CasePlayer() {
     setShortAnswerError("");
     setSubmittedResponseFeedback(responseFeedback);
     setTestingReasoningQualified(reasoningQualified);
+    setTestingSubmissionId((prev) => prev + 1);
     setChoice(resolved?.id ?? null);
     setBubbleSource("context");
   }
@@ -783,6 +800,20 @@ function getTestingPointsForScore(score: number) {
   return Math.max(40, Math.round(score * 0.6));
 }
 
+function getTestingPointsForAttempt({
+  score,
+  correctChoice,
+  reasoningQualified,
+}: {
+  score: number;
+  correctChoice: boolean;
+  reasoningQualified: boolean;
+}) {
+  if (correctChoice && reasoningQualified) return getTestingPointsForScore(score);
+  if (correctChoice || reasoningQualified) return 25;
+  return 0;
+}
+
 function buildShortAnswerSubmissionFeedback({
   content,
   resolvedDrug,
@@ -811,7 +842,7 @@ function buildShortAnswerSubmissionFeedback({
   if (!resolvedDrug) {
     return {
       headline: "Could not identify medication class",
-      score: 0,
+      score: reasoningQualified ? 45 : 0,
       bullets: [
         "We could not match your medication class to available options.",
         "Use one of the listed classes and keep your explanation concise.",
@@ -837,9 +868,11 @@ function buildShortAnswerSubmissionFeedback({
   if (!patient.appropriate.includes(resolvedDrug.id)) {
     return {
       ...baseFeedback,
-      score: 0,
+      score: reasoningQualified ? Math.max(45, Math.min(65, baseFeedback.score)) : 0,
       headline: "Incorrect medication choice",
-      rationale: "This selected class is not appropriate for this patient in this case.",
+      rationale: reasoningQualified
+        ? "Medication choice is incorrect, but your reasoning has some clinical value."
+        : "This selected class is not appropriate for this patient in this case.",
     };
   }
 
