@@ -8,7 +8,7 @@ import { getAllCases, getAllDrugs, gradeChoice } from "@/lib/engine";
 import type { PatientReaction } from "@/lib/types";
 
 type Mode = "browse" | "learning" | "testing" | "diagnostic";
-type QuestionType = "mcq" | "short_answer" | "reasoning";
+type QuestionType = "mcq" | "short_answer";
 type DifficultyLevel = "basic" | "intermediate" | "advanced";
 type ChatMessage = { role: "user" | "assistant"; text: string };
 type DoctorErrorPayload = { error?: string; detail?: string };
@@ -29,13 +29,8 @@ export function CasePlayer() {
   const [caseId, setCaseId] = useState(cases[0]?.id ?? "");
   const [testingIndex, setTestingIndex] = useState(0);
   const [choice, setChoice] = useState<string | null>(null);
-  const [pendingChoice, setPendingChoice] = useState<string | null>(null);
   const [shortAnswerInput, setShortAnswerInput] = useState("");
   const [shortAnswerError, setShortAnswerError] = useState("");
-  const [reasoningInput, setReasoningInput] = useState("");
-  const [submittedReasoning, setSubmittedReasoning] = useState("");
-  const [reasoningError, setReasoningError] = useState("");
-  const [reasoningComposerOpen, setReasoningComposerOpen] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [breatherSecondsLeft, setBreatherSecondsLeft] = useState(0);
   const [learningPhase, setLearningPhase] = useState<"idle" | "timer">("idle");
@@ -76,16 +71,14 @@ export function CasePlayer() {
   const testingAnswered = mode === "testing" && !!choice;
   const learningConsolidationActive = mode === "learning" && learningPhase === "timer";
   const selectedDrugName = choice ? drugs.find((drug) => drug.id === choice)?.name ?? choice : null;
-  const pendingDrugName = pendingChoice ? drugs.find((drug) => drug.id === pendingChoice)?.name ?? pendingChoice : null;
   const questionHint = buildQuestionHint(patient, questionType);
   const diagnosticDrug = diagnosticDrugId ? drugs.find((drug) => drug.id === diagnosticDrugId) ?? null : null;
   const scoredTestingAttempts = useRef<Set<string>>(new Set());
-  const difficultyLevel: DifficultyLevel = scoredPoints >= 500 ? "advanced" : scoredPoints >= 220 ? "intermediate" : "basic";
+  const difficultyLevel: DifficultyLevel =
+    scoredPoints >= 1500 ? "advanced" : scoredPoints >= 1000 ? "intermediate" : "basic";
   const allowedTestingQuestionTypes: QuestionType[] = useMemo(
     () =>
-      difficultyLevel === "advanced"
-        ? ["mcq", "short_answer", "reasoning"]
-        : difficultyLevel === "intermediate"
+      difficultyLevel === "advanced" || difficultyLevel === "intermediate"
           ? ["mcq", "short_answer"]
           : ["mcq"],
     [difficultyLevel]
@@ -93,18 +86,13 @@ export function CasePlayer() {
   const doctorMood: DoctorMood = mode === "diagnostic"
     ? getDoctorMoodFromScore(diagnosticReview?.score)
     : getDoctorMoodFromScore(feedback?.score);
-  const doctorPromptText =
-    mode === "diagnostic" && diagnosticDrug
-      ? difficultyLevel === "advanced"
-        ? `High difficulty: Should we use ${diagnosticDrug.name}? Justify with renal context, risk tradeoffs, and preferred alternatives.`
-        : difficultyLevel === "intermediate"
-          ? `Moderate difficulty: Should we use ${diagnosticDrug.name}? Explain why/why not and list monitoring priorities.`
-          : `Basic difficulty: Should we use ${diagnosticDrug.name}? Explain why or why not.`
-      : selectedDrugName
-        ? `What do you think about ${selectedDrugName} for this patient?`
-        : mode === "browse"
-          ? "Review the options and tell me your reasoning."
-          : "Share your reasoning for this case.";
+  const doctorPromptText = buildDoctorPromptText({
+    mode,
+    difficultyLevel,
+    diagnosticDrugName: diagnosticDrug?.name ?? null,
+    selectedDrugName,
+    feedbackScore: feedback?.score,
+  });
 
   useEffect(() => {
     if (diagnosticDrugId || drugs.length === 0) return;
@@ -145,7 +133,7 @@ export function CasePlayer() {
     if (scoredTestingAttempts.current.has(attemptKey)) return;
     scoredTestingAttempts.current.add(attemptKey);
     if (!patient.appropriate.includes(choice)) return;
-    const earned = Math.max(40, Math.round((feedback.score ?? 80) * 0.6));
+    const earned = getTestingPointsForScore(feedback.score ?? 80);
     setScoredPoints((prev) => prev + earned);
   }, [mode, choice, feedback, patient.id, testingIndex, patient.appropriate]);
 
@@ -164,17 +152,6 @@ export function CasePlayer() {
   }
 
   function handleChoice(drugId: string) {
-    if (questionType === "reasoning") {
-      if (pendingChoice === drugId) {
-        setReasoningComposerOpen((open) => !open);
-        return;
-      }
-      setPendingChoice(drugId);
-      setChoice(null);
-      setReasoningError("");
-      setReasoningComposerOpen(true);
-      return;
-    }
     setShortAnswerError("");
     setChoice(drugId);
   }
@@ -185,13 +162,8 @@ export function CasePlayer() {
 
   function resetAttemptState() {
     setChoice(null);
-    setPendingChoice(null);
     setShortAnswerInput("");
     setShortAnswerError("");
-    setReasoningInput("");
-    setSubmittedReasoning("");
-    setReasoningError("");
-    setReasoningComposerOpen(false);
     setShowHint(false);
     setBreatherSecondsLeft(0);
     setLearningPhase("idle");
@@ -211,28 +183,19 @@ export function CasePlayer() {
   }
 
   function submitShortAnswer() {
-    const resolved = resolveDrugFromAnswer(shortAnswerInput, drugs);
+    const content = shortAnswerInput.trim();
+    if (!hasSufficientShortAnswerReasoning(content)) {
+      setShortAnswerError("Include both the medication class and a brief clinical reason (at least one sentence).");
+      return;
+    }
+
+    const resolved = resolveDrugFromAnswer(content, drugs);
     if (!resolved) {
       setShortAnswerError("Could not match that answer. Try a medication class name from the choices.");
       return;
     }
     setShortAnswerError("");
     setChoice(resolved.id);
-  }
-
-  function submitReasoning() {
-    if (!pendingChoice) {
-      setReasoningError("Select a medication class first.");
-      return;
-    }
-    const rationale = reasoningInput.trim();
-    if (rationale.length < 20) {
-      setReasoningError("Write at least one clear sentence explaining your reasoning.");
-      return;
-    }
-    setReasoningError("");
-    setSubmittedReasoning(rationale);
-    setChoice(pendingChoice);
   }
 
   function startLearningConsolidation() {
@@ -335,12 +298,6 @@ export function CasePlayer() {
             </ul>
           </div>
         )}
-        {questionType === "reasoning" && submittedReasoning && (
-          <div className="side-effects">
-            <p className="side-effects-title">Reasoning check</p>
-            <p className="rationale">{submittedReasoning}</p>
-          </div>
-        )}
         {mode === "learning" && (
           <div className="quiz-actions">
             <p className="rationale">
@@ -390,42 +347,28 @@ export function CasePlayer() {
           feedbackEmoji={feedback ? feedbackEmoji : null}
           doctorPromptText={doctorPromptText}
           doctorMood={doctorMood}
-          doctorShowBubble={mode !== "browse"}
+          doctorShowBubble={mode !== "diagnostic"}
         />
         <div className="hud hud-top">
           <div className="hud-header">
             <span className="hud-title">Simulose</span>
             <span className="hud-subtitle">Patient medication simulator</span>
           </div>
-          <div className="mode-switch" role="tablist" aria-label="Simulation mode">
-            <button
-              type="button"
-              className={mode === "browse" ? "active" : ""}
-              onClick={() => switchMode("browse")}
+          <div className="mode-picker">
+            <select
+              id="mode-picker"
+              className="mode-select"
+              value={mode}
+              onChange={(e) => switchMode(e.target.value as Mode)}
             >
-              Browse Mode
-            </button>
-            <button
-              type="button"
-              className={mode === "learning" ? "active" : ""}
-              onClick={() => switchMode("learning")}
-            >
-              Learning Mode
-            </button>
-            <button
-              type="button"
-              className={mode === "testing" ? "active" : ""}
-              onClick={() => switchMode("testing")}
-            >
-              Testing Mode
-            </button>
-            <button
-              type="button"
-              className={mode === "diagnostic" ? "active" : ""}
-              onClick={() => switchMode("diagnostic")}
-            >
-              Diagnostic View
-            </button>
+              <option value="" disabled>
+                Choose a mode
+              </option>
+              <option value="browse">Browse Mode</option>
+              <option value="learning">Learning Mode</option>
+              <option value="testing">Testing Mode</option>
+              <option value="diagnostic">Diagnostic View</option>
+            </select>
           </div>
           {(mode === "testing" || mode === "diagnostic") && (
             <p className="quiz-progress">
@@ -435,17 +378,18 @@ export function CasePlayer() {
           <div className="hud-case-picker">
             {mode !== "testing" ? (
               <>
-                <label className="case-label" htmlFor="case-picker">
-                  Patient scenario
-                </label>
                 <select
                   id="case-picker"
+                  className="case-picker-select"
                   value={patient.id}
                   onChange={(e) => {
                     setCaseId(e.target.value);
                     nextAttempt();
                   }}
                 >
+                  <option value="" disabled>
+                    Patient list
+                  </option>
                   {cases.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.title}
@@ -462,6 +406,17 @@ export function CasePlayer() {
         </div>
 
         <div className="floating-tools">
+          {(mode === "browse" || mode === "learning") && (
+            <button
+              type="button"
+              className="doctor-chat-launch"
+              onClick={() => setShowDoctor((open) => !open)}
+              aria-expanded={showDoctor}
+              aria-controls="ai-doctor-panel"
+            >
+              {showDoctor ? "Hide Chat" : "Open Chat"}
+            </button>
+          )}
           <div className="emoji-key-wrap">
             <button
               type="button"
@@ -469,8 +424,10 @@ export function CasePlayer() {
               onClick={() => setShowEmojiKey((open) => !open)}
               aria-expanded={showEmojiKey}
               aria-controls="emoji-key-panel"
+              aria-label="Toggle emoji key"
+              title="Legend"
             >
-              Emoji Key
+              <span aria-hidden="true">🗝️</span>
             </button>
             {showEmojiKey && (
               <div id="emoji-key-panel" className="emoji-key-panel">
@@ -579,28 +536,7 @@ export function CasePlayer() {
           )}
 
           <div className="hud-panel drug-panel">
-            {mode === "diagnostic" ? (
-              <>
-                {diagnosticReview && (
-                  <>
-                    <p className="score">Reasoning Score: {diagnosticReview.score}/100</p>
-                    <p className="rationale">{diagnosticReview.summary}</p>
-                    <p className="feedback-label">Strengths</p>
-                    <ul className="feedback-list">
-                      {diagnosticReview.strengths.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                    <p className="feedback-label">Improve next response</p>
-                    <ul className="feedback-list">
-                      {diagnosticReview.gaps.map((item) => (
-                        <li key={item}>{item}</li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-              </>
-            ) : mode === "learning" && learningConsolidationActive && feedback ? (
+            {mode === "learning" && learningConsolidationActive && feedback ? (
               <>
                 <h3>Recall Summary</h3>
                 <p className="rationale">
@@ -646,17 +582,6 @@ export function CasePlayer() {
                     }}
                   >
                     Short Answer
-                  </button>
-                  <button
-                    type="button"
-                    className={questionType === "reasoning" ? "active" : ""}
-                    disabled={mode === "testing" && !allowedTestingQuestionTypes.includes("reasoning")}
-                    onClick={() => {
-                      setQuestionType("reasoning");
-                      nextAttempt();
-                    }}
-                  >
-                    Explain Reasoning
                   </button>
                 </div>
                 <div className="hint-row">
@@ -712,12 +637,12 @@ export function CasePlayer() {
                 {questionType === "short_answer" && (
                   <div className="free-answer-block">
                     <p className="rationale">
-                      Type the best medication class for this patient (example: &quot;SGLT2 inhibitor&quot;).
+                      Write the best medication class and explain why it fits this patient.
                     </p>
                     <textarea
                       className="doctor-input"
-                      rows={2}
-                      placeholder="Enter medication class..."
+                      rows={3}
+                      placeholder='Example: "SGLT2 inhibitor, because CKD and hypoglycemia risk favor renal-protective, low-hypo options."'
                       value={shortAnswerInput}
                       onChange={(e) => setShortAnswerInput(e.target.value)}
                     />
@@ -728,54 +653,6 @@ export function CasePlayer() {
                       </button>
                     </div>
                     {feedback && renderInlineFeedback()}
-                  </div>
-                )}
-
-                {questionType === "reasoning" && (
-                  <div className="free-answer-block">
-                    <p className="rationale">Select a medication class to open/close reasoning input.</p>
-                    <div className="drug-grid">
-                      {drugs.map((drug) => {
-                        const selected = pendingChoice === drug.id;
-                        const disabled =
-                          (mode === "testing" && (testingAnswered || testingComplete)) || learningConsolidationActive;
-                        return (
-                          <div key={drug.id} className="reasoning-option-wrap">
-                            <button
-                              type="button"
-                              className={`drug-card ${selected ? "selected" : ""}`}
-                              onClick={() => handleChoice(drug.id)}
-                              disabled={disabled}
-                            >
-                              <strong className="drug-name">{drug.name}</strong>
-                              <p className="drug-meta">{drug.description}</p>
-                            </button>
-                            {selected && reasoningComposerOpen && (
-                              <div className="reasoning-composer">
-                                <p className="rationale">Explain why {drug.name} fits this patient.</p>
-                                <textarea
-                                  className="doctor-input"
-                                  rows={3}
-                                  placeholder="Explain your reasoning..."
-                                  value={reasoningInput}
-                                  onChange={(e) => setReasoningInput(e.target.value)}
-                                />
-                                {reasoningError && <p className="input-error">{reasoningError}</p>}
-                                <div className="quiz-actions">
-                                  <button type="button" onClick={submitReasoning}>
-                                    Submit Reasoning
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                            {choice === drug.id && renderInlineFeedback()}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {pendingDrugName && !reasoningComposerOpen && (
-                      <p className="rationale">Selected: {pendingDrugName}. Click again to reopen reasoning input.</p>
-                    )}
                   </div>
                 )}
               </>
@@ -943,6 +820,121 @@ function getDoctorMoodFromScore(score?: number): DoctorMood {
   return "strict";
 }
 
+function buildDoctorPromptText({
+  mode,
+  difficultyLevel,
+  diagnosticDrugName,
+  selectedDrugName,
+  feedbackScore,
+}: {
+  mode: Mode;
+  difficultyLevel: DifficultyLevel;
+  diagnosticDrugName: string | null;
+  selectedDrugName: string | null;
+  feedbackScore?: number;
+}) {
+  if (mode === "diagnostic" && diagnosticDrugName) {
+    if (difficultyLevel === "advanced") {
+      return `High difficulty: Should we use ${diagnosticDrugName}? Justify with renal context, risk tradeoffs, and preferred alternatives.`;
+    }
+    if (difficultyLevel === "intermediate") {
+      return `Moderate difficulty: Should we use ${diagnosticDrugName}? Explain why/why not and list monitoring priorities.`;
+    }
+    return `Basic difficulty: Should we use ${diagnosticDrugName}? Explain why or why not.`;
+  }
+
+  if (mode === "browse" || mode === "learning") {
+    return "Ask me any questions.";
+  }
+
+  if (!selectedDrugName || typeof feedbackScore !== "number") {
+    if (mode === "testing") return "What would you choose?";
+    return "Share your reasoning for this case.";
+  }
+
+  const tone =
+    feedbackScore >= 95
+      ? 5
+      : feedbackScore >= 80
+        ? 4
+        : feedbackScore >= 60
+          ? 3
+          : feedbackScore >= 40
+            ? 2
+            : feedbackScore >= 20
+              ? 1
+              : 0;
+  const seed = `${selectedDrugName}:${tone}`;
+
+  if (tone === 5) {
+    return pickBubbleVariant(
+      [
+        `${selectedDrugName}? Chef's kiss. Gold-standard move.`,
+        `Perfect read. ${selectedDrugName} fits this patient like a glove.`,
+        `${selectedDrugName} is elite here. Keep this clinical energy.`,
+      ],
+      seed
+    );
+  }
+  if (tone === 4) {
+    return pickBubbleVariant(
+      [
+        `${selectedDrugName} is a strong pick. Nice judgment.`,
+        `Solid choice: ${selectedDrugName} checks most of the right boxes.`,
+        `${selectedDrugName} works well here. Good clinical instincts.`,
+      ],
+      seed
+    );
+  }
+  if (tone === 3) {
+    return pickBubbleVariant(
+      [
+        `${selectedDrugName} is acceptable, but there is a sharper option.`,
+        `Decent pick. Let's refine it with kidney + hypo priorities.`,
+        `${selectedDrugName} can work, but it is not my first move.`,
+      ],
+      seed
+    );
+  }
+  if (tone === 2) {
+    return pickBubbleVariant(
+      [
+        `${selectedDrugName} makes me nervous for this profile.`,
+        `Risky lane: ${selectedDrugName} misses key patient priorities.`,
+        `${selectedDrugName} is shaky here. Re-check safety tradeoffs.`,
+      ],
+      seed
+    );
+  }
+  if (tone === 1) {
+    return pickBubbleVariant(
+      [
+        `${selectedDrugName}? whattttt?! Check kidney function and hypo risk.`,
+        `Whoa, bold choice. ${selectedDrugName} is a rough fit here.`,
+        `${selectedDrugName}? Red flag vibes. Let's reassess.`,
+      ],
+      seed
+    );
+  }
+
+  return pickBubbleVariant(
+    [
+      `${selectedDrugName}? Hard no. This could seriously harm the patient.`,
+      `Emergency brake: ${selectedDrugName} is unsafe in this context.`,
+      `${selectedDrugName} is a dangerous mismatch for this case.`,
+    ],
+    seed
+  );
+}
+
+function pickBubbleVariant(options: string[], seed: string) {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return options[hash % options.length];
+}
+
 function getPatientReaction(choice: string | null, score: number): PatientReaction {
   if (!choice) return "neutral";
   if (score >= 85) return "happy";
@@ -958,6 +950,12 @@ function getFeedbackEmoji(score: number) {
   if (score >= 40) return "😓";
   if (score >= 20) return "☹️";
   return "💀";
+}
+
+function getTestingPointsForScore(score: number) {
+  if (score >= 95) return 75;
+  if (score >= 80) return 50;
+  return Math.max(40, Math.round(score * 0.6));
 }
 
 function a1cInterpretation(a1c: number) {
@@ -1029,7 +1027,13 @@ function resolveDrugFromAnswer(
   const byId = drugs.find((drug) => drug.id === directId);
   if (byId) return byId;
 
-  return drugs.find((drug) => drug.name.toLowerCase().includes(normalized)) ?? null;
+  const aliasMatch = Object.entries(aliases).find(([alias]) => normalized.includes(alias));
+  if (aliasMatch) {
+    const aliasDrug = drugs.find((drug) => drug.id === aliasMatch[1]);
+    if (aliasDrug) return aliasDrug;
+  }
+
+  return drugs.find((drug) => normalized.includes(drug.name.toLowerCase())) ?? null;
 }
 
 function buildQuestionHint(
@@ -1050,7 +1054,38 @@ function buildQuestionHint(
     return `Hint: ${priorityText}.`;
   }
   if (questionType === "short_answer") {
-    return `Hint: answer with a medication class (for example: SGLT2 inhibitor, GLP-1 RA, metformin). Focus on: ${priorityText}.`;
+    return `Hint: answer with medication class plus reasoning in one response (example: SGLT2 inhibitor because CKD and low hypoglycemia risk). Focus on: ${priorityText}.`;
   }
-  return `Hint: include 3 parts in your explanation: patient risks/goals, why your choice helps, and what to monitor next. Focus on: ${priorityText}.`;
+  return `Hint: ${priorityText}.`;
+}
+
+function hasSufficientShortAnswerReasoning(answer: string) {
+  const normalized = answer.trim().toLowerCase();
+  if (normalized.length < 25) return false;
+
+  const wordCount = normalized.split(/\s+/).filter(Boolean).length;
+  if (wordCount < 6) return false;
+
+  const reasoningSignals = [
+    "because",
+    "since",
+    "due to",
+    "given",
+    "risk",
+    "benefit",
+    "avoid",
+    "prefer",
+    "monitor",
+    "kidney",
+    "egfr",
+    "ckd",
+    "hypoglycemia",
+    "weight",
+    "cost",
+    "ascvd",
+    "heart failure",
+    "hf",
+  ];
+
+  return reasoningSignals.some((token) => normalized.includes(token));
 }

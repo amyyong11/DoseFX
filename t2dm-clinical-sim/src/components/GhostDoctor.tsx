@@ -105,7 +105,7 @@ export function GhostDoctor({
       </group>
 
       {showBubble && (
-        <Html position={[0.64, 1.28, 0]} center>
+        <Html position={[-0.04, 1.42, 0.18]} center>
           <div
             style={{
               position: "relative",
@@ -127,23 +127,24 @@ export function GhostDoctor({
             <span
               style={{
                 position: "absolute",
-                left: "18px",
-                bottom: "-8px",
-                width: "12px",
-                height: "12px",
+                left: "50%",
+                bottom: "-10px",
+                width: "14px",
+                height: "14px",
+                transform: "translateX(-50%)",
                 background: "rgba(255,255,255,0.96)",
-                borderRight: "1px solid rgba(31,44,58,0.2)",
-                borderBottom: "1px solid rgba(31,44,58,0.2)",
+                border: "1px solid rgba(31,44,58,0.2)",
                 borderRadius: "50%",
               }}
             />
             <span
               style={{
                 position: "absolute",
-                left: "7px",
-                bottom: "-16px",
-                width: "8px",
-                height: "8px",
+                left: "50%",
+                bottom: "-24px",
+                width: "10px",
+                height: "10px",
+                transform: "translateX(-50%)",
                 background: "rgba(255,255,255,0.95)",
                 border: "1px solid rgba(31,44,58,0.18)",
                 borderRadius: "50%",
@@ -152,10 +153,11 @@ export function GhostDoctor({
             <span
               style={{
                 position: "absolute",
-                left: "0px",
-                bottom: "-22px",
-                width: "5px",
-                height: "5px",
+                left: "50%",
+                bottom: "-34px",
+                width: "7px",
+                height: "7px",
+                transform: "translateX(-50%)",
                 background: "rgba(255,255,255,0.94)",
                 border: "1px solid rgba(31,44,58,0.16)",
                 borderRadius: "50%",
