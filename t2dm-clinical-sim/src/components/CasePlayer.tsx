@@ -373,9 +373,9 @@ export function CasePlayer() {
                   <option value="" disabled>
                     Patient list
                   </option>
-                  {cases.map((c) => (
+                  {cases.map((c, index) => (
                     <option key={c.id} value={c.id}>
-                      {c.title}
+                      {`Patient ${index + 1}`}
                     </option>
                   ))}
                 </select>
